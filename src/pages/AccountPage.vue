@@ -22,11 +22,16 @@
             class="w-full border border-gray-300 mt-2 rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
           >
             <span class="text-sm text-gray-600 break-all">
-              {{ accountStore.getReceiveAddress }}
+              {{ accountStore.account.getReceiveAddressDetails().bech32 }}
             </span>
 
             <button
-              @click="copyButton(accountStore.getReceiveAddress, 0)"
+              @click="
+                copyButton(
+                  accountStore.account.getReceiveAddressDetails().bech32,
+                  0,
+                )
+              "
               class="w-6 h-6 rounded-md border-[0.5px] border-primary bg-blue-50 flex justify-center items-center shrink-0 hover:bg-blue-100"
             >
               <font-awesome-icon
@@ -57,10 +62,19 @@
               </div>
               <div class="flex gap-x-8 justify-between items-center">
                 <span class="text-sm text-gray-600 break-all">
-                  {{ accountStore.getPaymentPrivateKey }}
+                  {{
+                    accountStore.account.getReceiveAddressDetails()
+                      .paymentCredential.privKeyHex
+                  }}
                 </span>
                 <button
-                  @click="copyButton(accountStore.getPaymentPrivateKey, 1)"
+                  @click="
+                    copyButton(
+                      accountStore.account.getReceiveAddressDetails()
+                        .paymentCredential.privKeyHex,
+                      1,
+                    )
+                  "
                   class="w-6 h-6 rounded-md border-[0.5px] border-primary bg-blue-50 flex justify-center items-center shrink-0 hover:bg-blue-100"
                 >
                   <font-awesome-icon
@@ -87,10 +101,19 @@
               </div>
               <div class="flex gap-x-8 justify-between items-center">
                 <span class="text-sm text-gray-600 break-all">
-                  {{ accountStore.getStakingPrivateKey }}
+                  {{
+                    accountStore.account.getReceiveAddressDetails()
+                      .stakeCredential.privKeyHex
+                  }}
                 </span>
                 <button
-                  @click="copyButton(accountStore.getStakingPrivateKey, 2)"
+                  @click="
+                    copyButton(
+                      accountStore.account.getReceiveAddressDetails()
+                        .stakeCredential.privKeyHex,
+                      2,
+                    )
+                  "
                   class="w-6 h-6 rounded-md border-[0.5px] border-primary bg-blue-50 flex justify-center items-center shrink-0 hover:bg-blue-100"
                 >
                   <font-awesome-icon
