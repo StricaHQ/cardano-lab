@@ -1,7 +1,12 @@
 <template>
   <div class="text-gray-800 w-full max-w-[1300px] mx-auto px-5">
     <header class="grid grid-cols-2 md:grid-cols-5 items-center py-2">
-      <div class="text-xl font-semibold col-span-1">Cardano Lab</div>
+      <div
+        class="text-xl font-semibold col-span-1 flex items-center gap-x-2 w-40"
+      >
+        <img class="w-10" src="../../../assets/image/logo.svg" alt="" />
+        <span class="text-lg">Cardano Lab</span>
+      </div>
       <div class="hidden md:block col-span-3">
         <nav class="flex justify-center gap-x-10 text-sm">
           <button
@@ -11,41 +16,32 @@
             class="relative"
           >
             <span
-              :class="activeLink === item ? 'font-semibold' : 'font-medium'"
-              class="text-gray-800"
+              :class="activeLink === item ? 'text-primary' : 'textColor1'"
+              class="font-semibold"
             >
               {{ item }}
             </span>
             <div
               :class="activeLink === item ? 'bg-primary' : 'bg-transparent'"
-              class="w-5 h-5 rounded-full absolute -bottom-7 inset-x-0 m-auto"
+              class="w-5 h-[10px] rounded-t-full absolute -bottom-[18px] inset-x-0 m-auto"
             ></div>
           </button>
-          <!-- <button class="font-semibold relative">
-            <span> Transaction </span>
-            <div
-              class="w-5 h-5 rounded-full bg-transparent absolute -bottom-7 inset-x-0 m-auto"
-            ></div>
-          </button>
-          <button class="font-semibold relative">
-            <span>Cbor View </span>
-            <div
-              class="w-5 h-5 rounded-full bg-transparent absolute -bottom-7 inset-x-0 m-auto"
-            ></div>
-          </button> -->
         </nav>
       </div>
       <div class="hidden md:block">
         <div class="col-span-1 flex justify-end">
-          <button
-            class="text-sm border border-primary hover:bg-blue-50 hover:text-primary rounded-sm px-4 py-1 duration-200 transition-all ease-in-out"
+          <AppButton
+            btnClass="border border-primary hover:bg-primary/[0.1] group !rounded-lg"
+            size="sm"
           >
-            Preprod
-          </button>
+            <span class="text-primary text-xs font-medium"
+              >Preprod</span
+            ></AppButton
+          >
         </div>
       </div>
       <!-- mobile view -->
-      <div class="col-span-1 flex justify-end md:hidden">
+      <div class="col-span-1 flex justify-end md:hidden relative z-40">
         <button @click="openMenu">
           <font-awesome-icon
             class="text-primary text-xl"
@@ -53,24 +49,50 @@
           />
         </button>
         <div
-          v-if="isOpenMenu"
-          class="w-[200px] bg-white border border-gray-200 shadow-sm shadow-gray-300 absolute top-8 rounded-md py-4 px-2"
+          v-if="isMenuOpen"
+          class="fixed top-0 right-0 left-0 bottom-0 bg-black/50 transition-all duration-400 ease-in-out z-40"
+          @click="closeMenu"
         >
-          <div class="flex flex-col items-start gap-y-0.5 text-sm w-full">
-            <button
-              class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary rounded-md"
-              v-for="item in menuItems"
-              :key="item"
+          <div
+            class="fixed right-0 bg-white transition-opacity duration-400 ease-in-out overflow-scroll no-scrollbar"
+            :class="isMenuOpen ? 'w-[70%] md:w-[50%] h-full ' : ''"
+          >
+            <div
+              class="flex justify-end p-2"
+              :class="
+                isMenuOpen
+                  ? ' transition-opacity-increase opacity-100'
+                  : ' transition-opacity-decrease opacity-0'
+              "
             >
-              {{ item }}
-            </button>
-            <div class="px-5 mt-2">
-              <button
-                class="text-sm border border-primary hover:bg-blue-50 hover:text-primary rounded-sm px-4 py-1 duration-200 transition-all ease-in-out"
-              >
-                Preprod
+              <button @click="closeMenu">
+                <font-awesome-icon
+                  class="text-primary text-xl"
+                  :icon="['fas', 'xmark']"
+                />
               </button>
             </div>
+
+            <div class="flex flex-col items-start gap-y-0.5 text-sm w-full">
+              <button
+                class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
+                v-for="item in menuItems"
+                :key="item"
+              >
+                {{ item }}
+              </button>
+              <div class="px-5 mt-2 w-full">
+                <AppButton
+                  btnClass="border border-primary hover:bg-primary/[0.1] group !rounded-lg w-full"
+                  size="sm"
+                >
+                  <span class="text-primary text-xs font-medium"
+                    >Preprod</span
+                  ></AppButton
+                >
+              </div>
+            </div>
+            <div class="flex flex-col"></div>
           </div>
         </div>
       </div>
@@ -80,8 +102,10 @@
 
 <script lang="ts">
 import { ref } from "vue";
+import AppButton from "@/components/buttons/AppButton.vue";
 
 export default {
+  components: { AppButton },
   setup() {
     const menuItems = ref<Array<string>>([
       "Account",
@@ -89,21 +113,26 @@ export default {
       "Cbor View",
     ]);
     const activeLink = ref<string>("Account");
-    const isOpenMenu = ref<boolean>(false);
+    const isMenuOpen = ref<boolean>(false);
 
     function navigateMenu(link: string) {
       activeLink.value = link;
     }
     function openMenu() {
-      isOpenMenu.value = !isOpenMenu.value;
+      isMenuOpen.value = true;
+    }
+
+    function closeMenu() {
+      isMenuOpen.value = false;
     }
 
     return {
       menuItems,
       activeLink,
-      isOpenMenu,
+      isMenuOpen,
       navigateMenu,
       openMenu,
+      closeMenu,
     };
   },
 };
