@@ -5,11 +5,18 @@ import { createPinia } from "pinia";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-import { faCheck, faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faBars,
+  faXmark,
+  faPlus,
+  faEraser,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { faCopy } from "@fortawesome/free-regular-svg-icons";
 // import {faTwitter} from "@fortawesome/free-brands-svg-icons"
 
-library.add(faCopy, faCheck, faBars, faXmark);
+library.add(faCopy, faCheck, faBars, faXmark, faPlus, faEraser, faTrash);
 
 import App from "./App.vue";
 import router from "./router";

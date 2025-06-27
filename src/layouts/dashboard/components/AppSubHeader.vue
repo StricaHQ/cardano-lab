@@ -4,10 +4,14 @@
       <nav class="grid grid-cols-5 text-xs text-gray-100">
         <div class="hidden col-span-1 lg:block"></div>
         <div
-          class="flex justify-start gap-x-4 col-span-5 lg:col-span-3 overflow-auto no-scrollbar"
+          class="flex justify-start gap-x-6 col-span-5 lg:col-span-3 overflow-auto no-scrollbar"
         >
-          <AppButton btnClass="btnColor">
-            <span class="text-xs">Create New Account</span>
+          <AppButton
+            v-for="item in subHeaderItem.value"
+            :key="item.itemLabel"
+            btnClass="bg-secondary"
+          >
+            <span class="text-xs">{{ item.itemLabel }}</span>
           </AppButton>
         </div>
         <div class="hidden col-span-1 lg:block"></div>
@@ -18,15 +22,34 @@
 
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
+import { ref, computed } from "vue";
+import { useRoute } from "vue-router";
 export default {
   components: {
     AppButton,
   },
+  setup() {
+    const route = useRoute();
+    const accountHeaderMenu = ref([
+      { itemLabel: "Create New Account", link: "/account/createAccount" },
+    ]);
+    const transactionHeaderMenu = ref([
+      { itemLabel: "Build Transaction", link: "/transaction/buildTransaction" },
+      { itemLabel: "Sign Transaction", link: "/" },
+    ]);
+
+    const subHeaderItem = computed(() => {
+      if (route.path.startsWith("/transaction")) {
+        return transactionHeaderMenu;
+      } else {
+        return accountHeaderMenu;
+      }
+    });
+
+    return {
+      route,
+      subHeaderItem,
+    };
+  },
 };
 </script>
-
-<style scoped>
-.btnColor {
-  @apply bg-[#1242B7];
-}
-</style>

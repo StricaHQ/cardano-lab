@@ -7,12 +7,20 @@ export default {
         primary: {
           DEFAULT: "#013396",
         },
+        secondary: {
+          DEFAULT: "#1242B7",
+        },
         textColor: {
           DEFAULT: "#00000",
           1: "#404040",
           2: "#808080",
         },
-        borderColor: "#B6B6B6",
+        cardBackgroundColor: {
+          DEFAULT: "#FDFDFD",
+        },
+        borderColor: {
+          DEFAULT: "#C9C9C9",
+        },
       },
       fontFamily: {
         Poppins: [
