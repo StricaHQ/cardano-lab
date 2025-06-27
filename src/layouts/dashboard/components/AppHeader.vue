@@ -11,18 +11,21 @@
         <nav class="flex justify-center gap-x-10 text-sm">
           <button
             v-for="item in menuItems"
-            :key="item"
-            @click="navigateMenu(item)"
+            :key="item.name"
+            @click="navigateToLink(item.link)"
+            :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
             class="relative"
           >
             <span
-              :class="activeLink === item ? 'text-primary' : 'textColor1'"
+              :class="activeLink === item.link ? 'text-primary' : 'textColor1'"
               class="font-semibold"
             >
-              {{ item }}
+              {{ item.name }}
             </span>
             <div
-              :class="activeLink === item ? 'bg-primary' : 'bg-transparent'"
+              :class="
+                activeLink === item.link ? 'bg-primary' : 'bg-transparent'
+              "
               class="w-5 h-[10px] rounded-t-full absolute -bottom-[18px] inset-x-0 m-auto"
             ></div>
           </button>
@@ -31,7 +34,7 @@
       <div class="hidden md:block">
         <div class="col-span-1 flex justify-end">
           <AppButton
-            btnClass="border border-primary hover:bg-primary/[0.1] group !rounded-lg"
+            btnClass="border border-primary hover:bg-primary/[0.1] group"
             size="sm"
           >
             <span class="text-primary text-xs font-medium"
@@ -77,13 +80,15 @@
               <button
                 class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
                 v-for="item in menuItems"
-                :key="item"
+                :key="item.name"
+                @click="navigateToLink(item.link)"
+                :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
               >
-                {{ item }}
+                {{ item.name }}
               </button>
               <div class="px-5 mt-2 w-full">
                 <AppButton
-                  btnClass="border border-primary hover:bg-primary/[0.1] group !rounded-lg w-full"
+                  btnClass="border border-primary hover:bg-primary/[0.1] group w-full"
                   size="sm"
                 >
                   <span class="text-primary text-xs font-medium"
@@ -101,22 +106,26 @@
 </template>
 
 <script lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import AppButton from "@/components/buttons/AppButton.vue";
+import { useRoute, useRouter } from "vue-router";
 
 export default {
   components: { AppButton },
   setup() {
-    const menuItems = ref<Array<string>>([
-      "Account",
-      "Transaction",
-      "Cbor View",
+    const menuItems = ref<Array<{ name: string; link: string }>>([
+      { name: "Account", link: "/account/createAccount" },
+      { name: "Transaction", link: "/transaction/buildTransaction" },
+      { name: "Cbor View", link: "/cbor" },
     ]);
-    const activeLink = ref<string>("Account");
+    const activeLink = ref<string>("/account");
     const isMenuOpen = ref<boolean>(false);
+    const router = useRouter();
+    const route = useRoute();
 
-    function navigateMenu(link: string) {
+    function navigateToLink(link: string) {
       activeLink.value = link;
+      router.push(link);
     }
     function openMenu() {
       isMenuOpen.value = true;
@@ -126,11 +135,15 @@ export default {
       isMenuOpen.value = false;
     }
 
+    onMounted(() => {
+      activeLink.value = route.path;
+    });
+
     return {
       menuItems,
       activeLink,
       isMenuOpen,
-      navigateMenu,
+      navigateToLink,
       openMenu,
       closeMenu,
     };

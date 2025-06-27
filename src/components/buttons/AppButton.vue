@@ -1,8 +1,9 @@
 <template>
   <button
-    class="rounded-sm hover:brightness-110 duration-300 transition-all ease-in-out flex items-center justify-center"
+    class="rounded-[3px] hover:brightness-110 duration-300 transition-all ease-in-out flex items-center justify-center disabled:opacity-90 disabled:brightness-100"
     :class="finalClass"
     @click="onClick"
+    :disabled="isDisabled"
   >
     <slot />
   </button>
@@ -17,6 +18,11 @@ export default {
     size: {
       type: String as () => "sm" | "md" | "lg",
       default: "md",
+    },
+    isDisabled: {
+      type: Boolean,
+      default: false,
+      required: false,
     },
   },
   emits: ["onClick"],

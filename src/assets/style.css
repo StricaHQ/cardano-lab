@@ -66,3 +66,16 @@ body{
 .borderBgColor {
   @apply bg-borderColor
 }
+
+/* cardBg */
+.cardBackgroundColor1 {
+  @apply bg-cardBackgroundColor
+}
+
+/* input */
+.inputLabel{
+  @apply text-xs textColor2 pl-2
+}
+.inputField {
+  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none bg-gray-200/[0.1] rounded-md w-full border borderColor text-sm
+}
