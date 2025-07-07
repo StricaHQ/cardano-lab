@@ -16,10 +16,13 @@ export default {
           2: "#808080",
         },
         cardBackgroundColor: {
-          DEFAULT: "#FDFDFD",
+          DEFAULT: "#FBFBFB",
         },
         borderColor: {
           DEFAULT: "#C9C9C9",
+        },
+        inputField: {
+          DEFAULT: "#FBFCFF",
         },
       },
       fontFamily: {

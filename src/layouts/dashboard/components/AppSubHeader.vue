@@ -6,13 +6,15 @@
         <div
           class="flex justify-start gap-x-6 col-span-5 lg:col-span-3 overflow-auto no-scrollbar"
         >
-          <AppButton
+          <RouterLink
             v-for="item in subHeaderItem.value"
             :key="item.itemLabel"
-            btnClass="bg-secondary"
+            :to="item.link"
           >
-            <span class="text-xs">{{ item.itemLabel }}</span>
-          </AppButton>
+            <AppButton btnClass="bg-secondary">
+              <span class="text-xs">{{ item.itemLabel }}</span>
+            </AppButton></RouterLink
+          >
         </div>
         <div class="hidden col-span-1 lg:block"></div>
       </nav>
@@ -35,7 +37,7 @@ export default {
     ]);
     const transactionHeaderMenu = ref([
       { itemLabel: "Build Transaction", link: "/transaction/buildTransaction" },
-      { itemLabel: "Sign Transaction", link: "/" },
+      { itemLabel: "Sign Transaction", link: "/transaction/signTransaction" },
     ]);
 
     const subHeaderItem = computed(() => {

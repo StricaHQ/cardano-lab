@@ -9,26 +9,28 @@
       </div>
       <div class="hidden md:block col-span-3">
         <nav class="flex justify-center gap-x-10 text-sm">
-          <button
+          <RouterLink
+            :to="item.link === '/cbor' ? '' : item.link"
             v-for="item in menuItems"
-            :key="item.name"
-            @click="navigateToLink(item.link)"
-            :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
             class="relative"
+            :key="item.name"
+            :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
           >
             <span
-              :class="activeLink === item.link ? 'text-primary' : 'textColor1'"
+              :class="
+                activeNavItem === item.link ? 'text-primary' : 'textColor1'
+              "
               class="font-semibold"
             >
               {{ item.name }}
             </span>
             <div
               :class="
-                activeLink === item.link ? 'bg-primary' : 'bg-transparent'
+                activeNavItem === item.link ? 'bg-primary' : 'bg-transparent'
               "
               class="w-5 h-[10px] rounded-t-full absolute -bottom-[18px] inset-x-0 m-auto"
             ></div>
-          </button>
+          </RouterLink>
         </nav>
       </div>
       <div class="hidden md:block">
@@ -77,15 +79,16 @@
             </div>
 
             <div class="flex flex-col items-start gap-y-0.5 text-sm w-full">
-              <button
-                class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
+              <RouterLink
+                :to="item.link === '/cbor' ? '' : item.link"
                 v-for="item in menuItems"
                 :key="item.name"
-                @click="navigateToLink(item.link)"
+                class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
                 :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
               >
-                {{ item.name }}
-              </button>
+                {{ item.name }}</RouterLink
+              >
+
               <div class="px-5 mt-2 w-full">
                 <AppButton
                   btnClass="border border-primary hover:bg-primary/[0.1] group w-full"
@@ -106,9 +109,9 @@
 </template>
 
 <script lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import AppButton from "@/components/buttons/AppButton.vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 
 export default {
   components: { AppButton },
@@ -118,15 +121,20 @@ export default {
       { name: "Transaction", link: "/transaction/buildTransaction" },
       { name: "Cbor View", link: "/cbor" },
     ]);
-    const activeLink = ref<string>("/account");
+    const activeLink = ref<string>("/account/createAccount");
     const isMenuOpen = ref<boolean>(false);
-    const router = useRouter();
     const route = useRoute();
 
-    function navigateToLink(link: string) {
-      activeLink.value = link;
-      router.push(link);
-    }
+    const activeNavItem = computed(() => {
+      if (route.path.startsWith("/account")) {
+        return "/account/createAccount";
+      } else if (route.path.startsWith("/transaction")) {
+        return "/transaction/buildTransaction";
+      } else {
+        return "/cbor";
+      }
+    });
+
     function openMenu() {
       isMenuOpen.value = true;
     }
@@ -143,9 +151,9 @@ export default {
       menuItems,
       activeLink,
       isMenuOpen,
-      navigateToLink,
       openMenu,
       closeMenu,
+      activeNavItem,
     };
   },
 };

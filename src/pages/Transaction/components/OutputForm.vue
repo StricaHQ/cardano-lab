@@ -1,11 +1,7 @@
 <template>
-  <div class="p-4 bg-white borderColor border rounded-md flex flex-col gap-y-4">
-    <div
-      class="bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center"
-    >
-      <span class="text-primary text-xs font-medium"
-        >Output #{{ trxCount }}</span
-      >
+  <div class="cardWhite flex flex-col gap-y-4">
+    <div class="headingBadge">
+      <span>Output #{{ trxCount }}</span>
     </div>
     <div class="flex flex-col gap-y-3">
       <div class="flex flex-col gap-y-3 md:flex-row gap-x-4 w-full">
@@ -38,32 +34,14 @@
           <div
             class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
           >
-            <div
+            <TokenBadge
               v-for="token in tokensList"
               :key="token.name"
-              class="max-w-max h-9 rounded-md bg-primary/[0.2] pl-0.5 pr-2 py-0.5 border border-primary/[0.1] flex gap-x-2 items-center"
-            >
-              <div
-                class="h-full min-w-12 max-w-max px-5 bg-white rounded-md flex justify-center items-center"
-              >
-                <span class="text-xs textColor font-medium">{{
-                  token.name
-                }}</span>
-              </div>
-              <div class="w-full flex items-center justify-between gap-x-8">
-                <div>
-                  <span class="textColor1 text-sm font-LabMono">{{
-                    token.amount
-                  }}</span>
-                </div>
-                <button @click="deleteToken(token.id)">
-                  <font-awesome-icon
-                    class="text-red-400 text-sm"
-                    :icon="['fas', 'xmark']"
-                  />
-                </button>
-              </div>
-            </div>
+              :tokenName="token.name"
+              :tokenAmount="token.amount"
+              :enableDelete="true"
+              @deleteToken="deleteToken(token.id)"
+            />
             <AppButton
               :isDisabled="true"
               size="sm"
@@ -107,15 +85,17 @@
 
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
+
 import { computed } from "vue";
 import { useTransactionsStore } from "../store";
+import TokenBadge from "@/components/TokenBadge.vue";
 
 export default {
   props: {
     trxCount: { type: Number, required: true },
     trxItemId: { type: Number, required: true },
   },
-  components: { AppButton },
+  components: { AppButton, TokenBadge },
   setup(props) {
     const trxStore = useTransactionsStore();
 

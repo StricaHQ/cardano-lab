@@ -71,11 +71,25 @@ body{
 .cardBackgroundColor1 {
   @apply bg-cardBackgroundColor
 }
+.card1 {
+  @apply cardBackgroundColor1 border border-gray-200 rounded-sm p-4
+}
+.cardWhite {
+  @apply bg-white border border-gray-100 rounded-sm p-4
+}
 
 /* input */
+.inputFieldBg {
+  @apply bg-inputField
+}
 .inputLabel{
   @apply text-xs textColor2 pl-2
 }
 .inputField {
-  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none bg-gray-200/[0.1] rounded-md w-full border borderColor text-sm
+  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 rounded-md w-full  text-sm
+}
+
+/* badge ui */
+.headingBadge {
+  @apply bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center text-primary text-xs font-medium
 }
