@@ -1,8 +1,25 @@
 import type { InputTrxItem, OutputTrxItem } from "@/types/transactions";
+import { Transaction } from "@stricahq/typhonjs";
+import type {
+  ProtocolParams,
+  ShelleyAddress,
+} from "@stricahq/typhonjs/dist/types";
+import { utils as TyphonUtils } from "@stricahq/typhonjs";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import BigNumber from "bignumber.js";
+import protocolParams from "@/assets/protocolParams.json";
 
 export const useTransactionsStore = defineStore("transactionsStore", () => {
+  const transaction = new Transaction({
+    protocolParams: protocolParams as unknown as ProtocolParams,
+  });
+
+  const transactionResponse = ref({
+    transactionHash: "",
+    unsignedTransaction: "",
+  });
+
   const inputTrxId = ref<number>(0);
   const inputTokenId = ref<number>(0);
 
@@ -13,9 +30,10 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
   const inputTrxItems = ref<Array<InputTrxItem>>([
     {
       id: inputTrxId.value++,
-      trxId: "",
-      adaAmount: "",
-      trxIndex: "",
+      txId: "",
+      amount: "",
+      index: "",
+      address: "",
       tokens: [],
     },
   ]);
@@ -23,9 +41,10 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
   function addInputTrx() {
     inputTrxItems.value.push({
       id: inputTrxId.value++,
-      trxId: "",
-      adaAmount: "",
-      trxIndex: "",
+      txId: "",
+      amount: "",
+      index: "",
+      address: "",
       tokens: [],
     });
   }
@@ -36,7 +55,7 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
 
   function setInputTrxFields(
     id: number,
-    inputField: "trxId" | "trxIndex" | "adaAmount",
+    inputField: "txId" | "index" | "amount" | "address",
     value: string,
   ) {
     const trx = getInputTrxById(id);
@@ -44,17 +63,34 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     trx[inputField] = value;
   }
 
-  function addTokensToInputTrx(trxId: number, name: string, amount: string) {
+  function addTokensToInputTrx({
+    trxId,
+    policyId,
+    assetName,
+    amount,
+  }: {
+    trxId: number;
+    policyId: string;
+    assetName: string;
+    amount: string;
+  }) {
     const trx = getInputTrxById(trxId);
     if (!trx) return;
     trx.tokens.push({
       id: inputTokenId.value++,
-      amount: amount,
-      name: name,
+      policyId,
+      amount,
+      assetName,
     });
   }
 
-  function deleteInputTrxToken(trxId: number, tokenId: number) {
+  function deleteInputTrxToken({
+    trxId,
+    tokenId,
+  }: {
+    trxId: number;
+    tokenId: number;
+  }) {
     const trx = getInputTrxById(trxId);
     if (trx) {
       trx.tokens = trx.tokens.filter((item) => item.id !== tokenId);
@@ -65,9 +101,10 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     const trx = getInputTrxById(trxId);
     if (trx) {
       trx.tokens = [];
-      trx.trxId = "";
-      trx.trxIndex = "";
-      trx.adaAmount = "";
+      trx.txId = "";
+      trx.index = "";
+      trx.amount = "";
+      trx.address = "";
     }
   }
 
@@ -86,7 +123,7 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     {
       id: outputTrxId.value++,
       address: "",
-      adaAmount: "",
+      amount: "",
       tokens: [],
     },
   ]);
@@ -95,18 +132,18 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     outputTrxItems.value.push({
       id: outputTrxId.value++,
       address: "",
-      adaAmount: "",
+      amount: "",
       tokens: [],
     });
   }
 
-  function getOutputTrxById(id: number) {
-    return outputTrxItems.value.find((item) => item.id === id);
+  function getOutputTrxById(trxId: number) {
+    return outputTrxItems.value.find((item) => item.id === trxId);
   }
 
   function setOutputTrxFields(
     id: number,
-    outputField: "address" | "adaAmount",
+    outputField: "address" | "amount",
     value: string,
   ) {
     const trx = getOutputTrxById(id);
@@ -114,17 +151,34 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     trx[outputField] = value;
   }
 
-  function addTokensToOutputTrx(trxId: number, name: string, amount: string) {
+  function addTokensToOutputTrx({
+    trxId,
+    policyId,
+    assetName,
+    amount,
+  }: {
+    trxId: number;
+    policyId: string;
+    assetName: string;
+    amount: string;
+  }) {
     const trx = getOutputTrxById(trxId);
     if (!trx) return;
     trx.tokens.push({
       id: outputTokenId.value++,
-      amount: amount,
-      name: name,
+      policyId,
+      amount,
+      assetName,
     });
   }
 
-  function deleteOutputTrxToken(trxId: number, tokenId: number) {
+  function deleteOutputTrxToken({
+    trxId,
+    tokenId,
+  }: {
+    trxId: number;
+    tokenId: number;
+  }) {
     const trx = getOutputTrxById(trxId);
     if (trx) {
       trx.tokens = trx.tokens.filter((item) => item.id !== tokenId);
@@ -136,7 +190,7 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     if (trx) {
       trx.tokens = [];
       trx.address = "";
-      trx.adaAmount = "";
+      trx.amount = "";
     }
   }
 
@@ -149,6 +203,54 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     }
   }
 
+  const fee = computed(() => transaction.getFee() || 0);
+
+  const buildTransaction = () => {
+    try {
+      inputTrxItems.value.map((trx) => {
+        const tokens = trx.tokens.map((token) => {
+          return {
+            policyId: token.policyId,
+            assetName: token.assetName,
+            amount: BigNumber(token.amount),
+          };
+        });
+
+        transaction.addInput({
+          txId: trx.txId,
+          index: Number(trx.index),
+          amount: BigNumber(trx.amount),
+          address: TyphonUtils.getAddressFromString(
+            trx.address,
+          ) as ShelleyAddress,
+          tokens: tokens,
+        });
+      });
+
+      outputTrxItems.value.map((trx) => {
+        const tokens = trx.tokens.map((token) => {
+          return {
+            policyId: token.policyId,
+            assetName: token.assetName,
+            amount: BigNumber(token.amount),
+          };
+        });
+
+        transaction.addOutput({
+          amount: BigNumber(trx.amount),
+          address: TyphonUtils.getAddressFromString(trx.address),
+          tokens: tokens,
+        });
+      });
+
+      const res = transaction.buildTransaction();
+
+      transactionResponse.value.transactionHash = res.hash;
+      transactionResponse.value.unsignedTransaction = res.payload;
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return {
     // input
     inputTrxItems,
@@ -168,5 +270,9 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     deleteOutputTrxToken,
     clearOutputTrxItem,
     deleteOutputTrx,
+
+    fee,
+    buildTransaction,
+    transactionResponse,
   };
 });

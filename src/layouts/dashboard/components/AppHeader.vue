@@ -46,10 +46,7 @@
       <!-- mobile view -->
       <div class="col-span-1 flex justify-end md:hidden relative z-40">
         <button @click="openMenu">
-          <font-awesome-icon
-            class="text-primary text-xl"
-            :icon="['fas', 'bars']"
-          />
+          <Bars class="text-primary size-6 mt-2" />
         </button>
         <div
           v-if="isMenuOpen"
@@ -69,10 +66,7 @@
               "
             >
               <button @click="closeMenu">
-                <font-awesome-icon
-                  class="text-primary text-xl"
-                  :icon="['fas', 'xmark']"
-                />
+                <Close class="text-primary size-6 mt-2" />
               </button>
             </div>
 
@@ -109,9 +103,11 @@
 import { onMounted, ref } from "vue";
 import AppButton from "@/components/buttons/AppButton.vue";
 import { useRoute, useRouter } from "vue-router";
+import Bars from "@/assets/icons/bars.vue";
+import Close from "@/assets/icons/close.vue";
 
 export default {
-  components: { AppButton },
+  components: { AppButton, Bars, Close },
   setup() {
     const menuItems = ref<Array<{ name: string; link: string }>>([
       { name: "Account", link: "/account/createAccount" },

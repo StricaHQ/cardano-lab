@@ -1,6 +1,6 @@
 <template>
   <button
-    class="rounded-[3px] hover:brightness-110 duration-300 transition-all ease-in-out flex items-center justify-center disabled:opacity-90 disabled:brightness-100"
+    class="rounded-[3px] hover:brightness-110 duration-300 transition-all ease-in-out flex items-center justify-center disabled:opacity-50"
     :class="finalClass"
     @click="onClick"
     :disabled="isDisabled"
