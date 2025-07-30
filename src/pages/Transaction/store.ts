@@ -1,19 +1,22 @@
 import type { InputTrxItem, OutputTrxItem } from "@/types/transactions";
 import { Transaction } from "@stricahq/typhonjs";
 import type {
+  Output,
   ProtocolParams,
   ShelleyAddress,
 } from "@stricahq/typhonjs/dist/types";
 import { utils as TyphonUtils } from "@stricahq/typhonjs";
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import BigNumber from "bignumber.js";
 import protocolParams from "@/assets/protocolParams.json";
 
 export const useTransactionsStore = defineStore("transactionsStore", () => {
-  const transaction = new Transaction({
-    protocolParams: protocolParams as unknown as ProtocolParams,
-  });
+  const transaction = ref(
+    new Transaction({
+      protocolParams: protocolParams as unknown as ProtocolParams,
+    }),
+  );
 
   const transactionResponse = ref({
     transactionHash: "",
@@ -203,9 +206,35 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     }
   }
 
-  const fee = computed(() => transaction.getFee() || 0);
+  const fee = ref(transaction.value.getFee().dividedBy(1000000).toString());
 
-  const buildTransaction = () => {
+  function updateFee(newFee: BigNumber) {
+    fee.value = newFee.dividedBy(1000000).toString();
+  }
+
+  function calculateFee(includeTransactions = true) {
+    let txs = [] as Array<Output>;
+    if (includeTransactions)
+      txs = outputTrxItems.value.map((trx) => {
+        const tokens = trx.tokens.map((token) => {
+          return {
+            policyId: token.policyId,
+            assetName: token.assetName,
+            amount: BigNumber(token.amount),
+          };
+        });
+
+        return {
+          amount: BigNumber(trx.amount).multipliedBy(1000000),
+          address: TyphonUtils.getAddressFromString(trx.address),
+          tokens: tokens,
+        };
+      });
+    const calculatedFee = transaction.value.calculateFee(txs);
+    updateFee(calculatedFee);
+  }
+
+  const updateInputsAndOutputs = () => {
     try {
       inputTrxItems.value.map((trx) => {
         const tokens = trx.tokens.map((token) => {
@@ -216,7 +245,7 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
           };
         });
 
-        transaction.addInput({
+        transaction.value.addInput({
           txId: trx.txId,
           index: Number(trx.index),
           amount: BigNumber(trx.amount),
@@ -226,7 +255,8 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
           tokens: tokens,
         });
       });
-
+    } catch {}
+    try {
       outputTrxItems.value.map((trx) => {
         const tokens = trx.tokens.map((token) => {
           return {
@@ -235,15 +265,24 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
             amount: BigNumber(token.amount),
           };
         });
-
-        transaction.addOutput({
-          amount: BigNumber(trx.amount),
+        transaction.value.addOutput({
+          amount: BigNumber(trx.amount).multipliedBy(1000000),
           address: TyphonUtils.getAddressFromString(trx.address),
           tokens: tokens,
         });
       });
+    } catch {}
+  };
 
-      const res = transaction.buildTransaction();
+  const buildTransaction = () => {
+    try {
+      transaction.value = new Transaction({
+        protocolParams: protocolParams as unknown as ProtocolParams,
+      });
+
+      transaction.value.setFee(BigNumber(fee.value).dividedBy(1000000));
+      updateInputsAndOutputs();
+      const res = transaction.value.buildTransaction();
 
       transactionResponse.value.transactionHash = res.hash;
       transactionResponse.value.unsignedTransaction = res.payload;
@@ -271,7 +310,9 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     clearOutputTrxItem,
     deleteOutputTrx,
 
+    calculateFee,
     fee,
+    updateFee,
     buildTransaction,
     transactionResponse,
   };

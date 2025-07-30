@@ -59,13 +59,26 @@
       <div
         class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
       >
-        <div>
-          <span class="textColor1 text-sm font-medium">Fee</span>
-        </div>
-        <div
-          class="borderColor border rounded-md bg-gray-100 cursor-not-allowed w-full md:w-[600px] px-4 flex justify-start items-center h-10"
-        >
-          <span class="textColor2 text-sm">{{ fee }}</span>
+        <label class="inputLabel" for="fee">Fee</label>
+        <div class="flex items-center gap-4">
+          <div class="w-full flex flex-col gap-y-1">
+            <input
+              id="fee"
+              class="inputField"
+              type="text"
+              placeholder="Fee"
+              v-model="fee"
+            />
+          </div>
+          <div class="opacity-50">or</div>
+          <div>
+            <AppButton
+              btnClass="bg-secondary max-w-max text-white text-xs"
+              @onClick="calculateFee"
+            >
+              calculate
+            </AppButton>
+          </div>
         </div>
       </div>
     </div>
@@ -103,11 +116,13 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 
 <script lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import InputForm from "./components/InputForm.vue";
 import AppButton from "@/components/buttons/AppButton.vue";
 import { useTransactionsStore } from "./store";
+import BigNumber from "bignumber.js";
 import OutputForm from "./components/OutputForm.vue";
+
 export default {
   components: { InputForm, AppButton, OutputForm },
   setup() {
@@ -150,7 +165,39 @@ export default {
       }
     }
 
-    const fee = computed(() => trxStore.fee);
+    const fee = ref(trxStore.fee);
+
+    watch(
+      () => trxStore.fee,
+      () => {
+        fee.value = trxStore.fee;
+      },
+    );
+
+    const debounceTimeout = ref<NodeJS.Timeout>();
+    const onDebouncedFee = () => {
+      trxStore.updateFee(
+        fee.value.length
+          ? BigNumber(fee.value).multipliedBy(1000000)
+          : BigNumber(0),
+      );
+    };
+
+    watch(fee, () => {
+      clearTimeout(debounceTimeout.value);
+      debounceTimeout.value = setTimeout(() => {
+        onDebouncedFee();
+      }, 500); // 0.5 second debounce
+    });
+
+    const calculateFee = () => {
+      let isOutputFormsHaveValidData = true;
+      outputForm.value.forEach((form: any) => {
+        isOutputFormsHaveValidData = form.isFormValid();
+      });
+
+      if (isOutputFormsHaveValidData) trxStore.calculateFee();
+    };
 
     const transactionResponse = computed(() => trxStore.transactionResponse);
 
@@ -164,6 +211,7 @@ export default {
       transactionResponse,
       outputForm,
       inputFrom,
+      calculateFee,
     };
   },
 };
