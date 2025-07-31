@@ -37,32 +37,15 @@
           <div
             class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
           >
-            <div
+            <TokenBadge
               v-for="token in tokensList"
               :key="token.id"
-              class="max-w-max h-9 rounded-md bg-primary/[0.2] pl-0.5 pr-2 py-0.5 border border-primary/[0.1] flex gap-x-2 items-center"
-            >
-              <div
-                class="h-full min-w-12 max-w-max px-4 bg-white rounded-md flex justify-center items-center"
-              >
-                <span class="text-xs textColor flex break-all font-medium">{{
-                  token.policyId
-                }}</span>
-              </div>
-              <div class="w-max flex items-center justify-between gap-x-4">
-                <div class="flex gap-8">
-                  <span class="textColor1 text-sm break-all">{{
-                    token.assetName
-                  }}</span>
-                  <span class="textColor1 text-sm font-LabMono">{{
-                    token.amount
-                  }}</span>
-                </div>
-                <button @click="deleteToken(token.id)">
-                  <Close class="text-red-500 size-3.5" />
-                </button>
-              </div>
-            </div>
+              :policyId="token.policyId"
+              :assetName="token.assetName"
+              :amount="token.amount"
+              :enableDelete="true"
+              @deleteToken="deleteToken(token.id)"
+            />
             <AppButton
               size="sm"
               btnClass="bg-secondary"
@@ -117,10 +100,17 @@ import AddTokenDialog from "./addTokenDialog.vue";
 import { utils as TyphonUtils } from "@stricahq/typhonjs";
 import Delete from "@/assets/icons/delete.vue";
 import Eraser from "@/assets/icons/eraser.vue";
-import Close from "@/assets/icons/close.vue";
+import TokenBadge from "@/components/TokenBadge.vue";
 
 export default {
-  components: { AppButton, DialogBox, AddTokenDialog, Delete, Eraser, Close },
+  components: {
+    AppButton,
+    DialogBox,
+    AddTokenDialog,
+    Delete,
+    Eraser,
+    TokenBadge,
+  },
   props: {
     trxCount: { type: Number, required: true },
     trxItemId: { type: Number, required: true },
