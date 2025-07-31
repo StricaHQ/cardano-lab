@@ -1,11 +1,7 @@
 <template>
-  <div class="p-4 bg-white borderColor border rounded-md flex flex-col gap-y-4">
-    <div
-      class="bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center"
-    >
-      <span class="text-primary text-xs font-medium">
-        Input #{{ trxCount }}</span
-      >
+  <div class="cardWhite flex flex-col gap-y-4">
+    <div class="headingBadge">
+      <span>Input #{{ trxCount }}</span>
     </div>
     <div class="flex flex-col gap-y-3">
       <div class="flex flex-col gap-y-3 md:flex-row gap-x-4 w-full">

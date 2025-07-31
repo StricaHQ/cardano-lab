@@ -4,11 +4,9 @@
       <span class="textColor font-bold text-xl">Build Transaction</span>
     </div>
     <div class="flex flex-col gap-y-4">
-      <div
-        class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
-      >
+      <div class="w-full card1 flex flex-col gap-y-2">
         <div class="flex items-center gap-x-2">
-          <div class="w-3 h-3 rounded-full bg-secondary"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
             <span class="textColor1 text-sm font-medium">INPUTS</span>
           </div>
@@ -17,7 +15,7 @@
           <InputForm
             ref="inputFrom"
             v-for="(item, index) in inputTrxForm"
-            :key="index"
+            :key="item.id"
             :trxCount="index + 1"
             :trxItemId="item.id"
           />
@@ -29,11 +27,9 @@
           >
         </div>
       </div>
-      <div
-        class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
-      >
+      <div class="w-full card1 flex flex-col gap-y-2">
         <div class="flex items-center gap-x-2">
-          <div class="w-3 h-3 rounded-full bg-secondary"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
             <span class="textColor1 text-sm font-medium">OUTPUTS</span>
           </div>
@@ -42,7 +38,7 @@
           <OutputForm
             ref="outputForm"
             v-for="(item, index) in outputTrxForm"
-            :key="index"
+            :key="item.id"
             :trxCount="index + 1"
             :trxItemId="item.id"
           />
