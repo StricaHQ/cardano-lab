@@ -4,11 +4,9 @@
       <span class="textColor font-bold text-xl">Build Transaction</span>
     </div>
     <div class="flex flex-col gap-y-4">
-      <div
-        class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
-      >
+      <div class="w-full card1 flex flex-col gap-y-2">
         <div class="flex items-center gap-x-2">
-          <div class="w-3 h-3 rounded-full bg-secondary"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
             <span class="textColor1 text-sm font-medium">INPUTS</span>
           </div>
@@ -16,7 +14,7 @@
         <div class="flex flex-col gap-y-4">
           <InputForm
             v-for="(item, index) in inputTrxForm"
-            :key="item"
+            :key="item.id"
             :trxCount="index + 1"
             :trxItemId="item.id"
           />
@@ -28,11 +26,9 @@
           >
         </div>
       </div>
-      <div
-        class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
-      >
+      <div class="w-full card1 flex flex-col gap-y-2">
         <div class="flex items-center gap-x-2">
-          <div class="w-3 h-3 rounded-full bg-secondary"></div>
+          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
             <span class="textColor1 text-sm font-medium">OUTPUTS</span>
           </div>
@@ -40,7 +36,7 @@
         <div class="flex flex-col gap-y-4">
           <OutputForm
             v-for="(item, index) in outputTrxForm"
-            :key="item"
+            :key="item.id"
             :trxCount="index + 1"
             :trxItemId="item.id"
           />
@@ -54,14 +50,12 @@
       </div>
     </div>
     <div>
-      <div
-        class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
-      >
+      <div class="w-full card1 flex flex-col gap-y-2">
         <div>
           <span class="textColor1 text-sm font-medium">Fee</span>
         </div>
         <div
-          class="borderColor border rounded-md bg-white w-full md:w-[600px] px-4 flex justify-start items-center h-10"
+          class="cardWhite w-full md:w-[600px] px-4 flex justify-start items-center h-10"
         >
           <span class="textColor2 text-sm">0.123456</span>
         </div>
