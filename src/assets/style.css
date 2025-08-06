@@ -86,7 +86,11 @@ body {
   @apply text-xs textColor2 pl-2;
 }
 .inputField {
-  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 rounded-md w-full  text-sm;
+  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
+}
+
+.inputField-2 {
+  @apply h-8 px-4 textColor placeholder:text-xs placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
 }
 
 /* badge ui */

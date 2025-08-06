@@ -49,3 +49,9 @@ export type ShelleyAddress = {
     path: string;
   };
 };
+
+export type AccountCredential = {
+  hash: string;
+  type: "ADDRESS" | "SCRIPT";
+  path: BipPath;
+};

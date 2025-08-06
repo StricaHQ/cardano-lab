@@ -1,5 +1,11 @@
 <template>
   <div class="flex flex-col gap-y-5">
+    <div
+      v-show="!isAccountAvailable"
+      class="text-sm text-red-500 border border-red-300 bg-red-500/10 px-2 py-2 rounded-md"
+    >
+      No account found. Please create an account to build a transaction.
+    </div>
     <div>
       <span class="textColor font-bold text-xl">Build Transaction</span>
     </div>
@@ -55,33 +61,16 @@
       <div
         class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
       >
-        <label class="inputLabel" for="fee">Fee</label>
-        <div class="flex items-center gap-4">
-          <div class="w-full flex flex-col gap-y-1">
-            <input
-              id="fee"
-              class="inputField"
-              type="text"
-              placeholder="Fee"
-              v-model="fee"
-            />
-          </div>
-          <div class="opacity-50">or</div>
-          <div>
-            <AppButton
-              btnClass="bg-secondary max-w-max text-white text-xs"
-              @onClick="calculateFee"
-            >
-              calculate
-            </AppButton>
-          </div>
-        </div>
+        <label class="textColor2 text-xs">Fee</label>
+        <div class="textColor1 text-sm">{{ fee || "----" }}</div>
       </div>
     </div>
+
     <AppButton
       size="lg"
       btnClass="bgGradient max-w-max"
       @onClick="buildTransaction"
+      :isDisabled="!isAccountAvailable"
     >
       <span class="text-sm text-white">Build Transaction</span>
     </AppButton>
@@ -98,6 +87,8 @@
         <div class="flex break-all">
           {{ transactionResponse.transactionHash || "----" }}
         </div>
+
+        <CopyButton :content="transactionResponse.transactionHash" />
       </div>
       <div class="border-b borderColor w-full"></div>
       <div class="flex gap-4">
@@ -107,22 +98,39 @@
         </div>
       </div>
     </div>
+
+    <AppButton
+      v-if="
+        transactionResponse.transactionHash ||
+        transactionResponse.unsignedTransaction
+      "
+      size="lg"
+      btnClass="bgGradient max-w-max"
+      @onClick="signTransaction"
+    >
+      <span class="text-sm text-white">Sign Transaction</span>
+    </AppButton>
   </div>
 </template>
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 
 <script lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, defineComponent, ref } from "vue";
 import InputForm from "./components/InputForm.vue";
 import AppButton from "@/components/buttons/AppButton.vue";
 import { useTransactionsStore } from "./store";
-import BigNumber from "bignumber.js";
 import OutputForm from "./components/OutputForm.vue";
+import CopyButton from "@/components/buttons/CopyButton.vue";
+import { createWitnesses } from "@/lib/wallet";
+import { useRouter } from "vue-router";
+import { useAccountStore } from "@/stores/openStore";
+import type { Account } from "@/lib/account";
 
-export default {
-  components: { InputForm, AppButton, OutputForm },
+export default defineComponent({
+  components: { InputForm, AppButton, OutputForm, CopyButton },
   setup() {
     const trxStore = useTransactionsStore();
+    const router = useRouter();
 
     const inputTrxForm = computed(() => {
       return trxStore.inputTrxItems;
@@ -161,42 +169,32 @@ export default {
       }
     }
 
-    const fee = ref(trxStore.fee);
+    const fee = computed(() => trxStore.fee);
 
-    watch(
-      () => trxStore.fee,
-      () => {
-        fee.value = trxStore.fee;
-      },
-    );
-
-    const debounceTimeout = ref<NodeJS.Timeout>();
-    const onDebouncedFee = () => {
-      trxStore.updateFee(
-        fee.value.length
-          ? BigNumber(fee.value).multipliedBy(1000000)
-          : BigNumber(0),
-      );
-    };
-
-    watch(fee, () => {
-      clearTimeout(debounceTimeout.value);
-      debounceTimeout.value = setTimeout(() => {
-        onDebouncedFee();
-      }, 500); // 0.5 second debounce
-    });
-
-    const calculateFee = () => {
-      let isOutputFormsHaveValidData = true;
-      outputForm.value.forEach((form: any) => {
-        isOutputFormsHaveValidData = form.isFormValid();
-      });
-
-      if (isOutputFormsHaveValidData) trxStore.calculateFee();
-    };
+    const accountStore = useAccountStore();
 
     const transactionResponse = computed(() => trxStore.transactionResponse);
 
+    const isAccountAvailable = computed(() =>
+      accountStore.account?.xpub ? true : false,
+    );
+    const signTransaction = () => {
+      const requiredSigners = trxStore.transaction.getRequiredWitnesses();
+      const account = accountStore.account;
+
+      const witnesses = createWitnesses({
+        requiredSigners,
+        account: account as Account,
+        txHash: trxStore.transaction.getTransactionHash(),
+      });
+
+      trxStore.updateWitnesses(witnesses);
+
+      trxStore.signedTransactionCBOR =
+        trxStore.transaction.buildTransaction().payload;
+
+      router.push("/transaction/signTransaction");
+    };
     return {
       inputTrxForm,
       addInputTransaction,
@@ -207,8 +205,9 @@ export default {
       transactionResponse,
       outputForm,
       inputFrom,
-      calculateFee,
+      signTransaction,
+      isAccountAvailable,
     };
   },
-};
+});
 </script>

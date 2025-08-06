@@ -127,6 +127,7 @@ import ShelleyTypeAddress from "@stricahq/typhonjs/dist/address/ShelleyTypeAddre
 import Delete from "@/assets/icons/delete.vue";
 import Eraser from "@/assets/icons/eraser.vue";
 import TokenBadge from "@/components/TokenBadge.vue";
+import { Network } from "@/enums/networks";
 
 export default {
   components: {
@@ -279,7 +280,19 @@ export default {
         try {
           const addressObj = TyphonUtils.getAddressFromString(
             addressField.value as string,
-          );
+          ) as any;
+
+          const selectedNetwork = localStorage.getItem(
+            "cardanoLabSelectedNetwork",
+          ) as Network;
+
+          if (
+            (addressObj.networkId == 0 && selectedNetwork == Network.MAINNET) ||
+            (addressObj.networkId == 1 && selectedNetwork == Network.PREPROD)
+          ) {
+            addressErrorMessage.value =
+              "Address is not a valid " + selectedNetwork + " address.";
+          }
           if (!(addressObj instanceof ShelleyTypeAddress)) {
             addressErrorMessage.value = "Only shelley address supported";
           }

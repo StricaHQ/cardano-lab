@@ -5,14 +5,17 @@ import { ref } from "vue";
 
 export const useAccountStore = defineStore("accountStore", () => {
   const account = ref<Account>();
+  const wallet = ref<{ mnemonic: string }>({ mnemonic: "" });
 
   async function setAccount() {
-    const wallet = await createNewWallet("cardano_testnet");
-    account.value = wallet.accounts[0];
+    const newWallet = await createNewWallet("cardano_testnet");
+    wallet.value.mnemonic = newWallet.mnemonic;
+    account.value = newWallet.accounts[0];
   }
 
   return {
     account,
+    wallet,
     setAccount,
   };
 });

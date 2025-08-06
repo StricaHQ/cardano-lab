@@ -1,27 +1,77 @@
 import type { InputTrxItem, OutputTrxItem } from "@/types/transactions";
 import { Transaction } from "@stricahq/typhonjs";
 import type {
-  Output,
-  ProtocolParams,
+  LanguageView,
   ShelleyAddress,
+  VKeyWitness,
 } from "@stricahq/typhonjs/dist/types";
 import { utils as TyphonUtils } from "@stricahq/typhonjs";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import BigNumber from "bignumber.js";
-import protocolParams from "@/assets/protocolParams.json";
+import mainnetProtocolParams from "@/assets/mainnetProtocolParams.json";
+import testnetProtocolParams from "@/assets/testnetProtocolParams.json";
+import { Network } from "@/enums/networks";
+
+import { convertADAToLovelace, convertLovelaceToADA } from "@/utils/utils";
+import { useAccountStore } from "@/stores/openStore";
 
 export const useTransactionsStore = defineStore("transactionsStore", () => {
+  const currentNetwork = ref(localStorage.getItem("cardanoLabSelectedNetwork"));
+
+  function updateNetwork(network: Network) {
+    localStorage.setItem("cardanoLabSelectedNetwork", network);
+    currentNetwork.value = network;
+  }
+
+  const cardanoscanEndPoint = ref(
+    localStorage.getItem("cardanoscanEndPoint") || "",
+  );
+
+  function updateCardanoscanEndPoint(endPoint: string) {
+    localStorage.setItem("cardanoscanEndPoint", endPoint);
+    cardanoscanEndPoint.value = endPoint;
+  }
+
+  const protocolParamsFromJson =
+    currentNetwork.value == Network.MAINNET
+      ? mainnetProtocolParams
+      : testnetProtocolParams;
+
+  const protocolParams = {
+    minFeeA: new BigNumber(protocolParamsFromJson.minFeeA),
+    minFeeB: new BigNumber(protocolParamsFromJson.minFeeB),
+    stakeKeyDeposit: new BigNumber(protocolParamsFromJson.stakeKeyDeposit),
+    lovelacePerUtxoWord: new BigNumber(
+      protocolParamsFromJson.lovelacePerUtxoWord,
+    ),
+    collateralPercent: new BigNumber(protocolParamsFromJson.collateralPercent),
+    priceSteps: new BigNumber(protocolParamsFromJson.priceSteps),
+    priceMem: new BigNumber(protocolParamsFromJson.priceMem),
+    maxTxSize: Number(protocolParamsFromJson.maxTxSize),
+    maxValueSize: Number(protocolParamsFromJson.maxValueSize),
+    utxoCostPerByte: new BigNumber(protocolParamsFromJson.utxoCostPerByte),
+    minFeeRefScriptCostPerByte: new BigNumber(
+      protocolParamsFromJson.minFeeRefScriptCostPerByte,
+    ),
+    languageView:
+      protocolParamsFromJson.languageView as unknown as LanguageView,
+  };
+
   const transaction = ref(
     new Transaction({
-      protocolParams: protocolParams as unknown as ProtocolParams,
+      protocolParams,
     }),
   );
+
+  const signedTransactionCBOR = ref("");
 
   const transactionResponse = ref({
     transactionHash: "",
     unsignedTransaction: "",
   });
+
+  const witnesses = ref<Array<VKeyWitness>>([]);
 
   const inputTrxId = ref<number>(0);
   const inputTokenId = ref<number>(0);
@@ -206,36 +256,16 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     }
   }
 
-  const fee = ref(transaction.value.getFee().dividedBy(1000000).toString());
+  const fee = ref("");
 
-  function updateFee(newFee: BigNumber) {
-    fee.value = newFee.dividedBy(1000000).toString();
-  }
-
-  function calculateFee(includeTransactions = true) {
-    let txs = [] as Array<Output>;
-    if (includeTransactions)
-      txs = outputTrxItems.value.map((trx) => {
-        const tokens = trx.tokens.map((token) => {
-          return {
-            policyId: token.policyId,
-            assetName: token.assetName,
-            amount: BigNumber(token.amount),
-          };
-        });
-
-        return {
-          amount: BigNumber(trx.amount).multipliedBy(1000000),
-          address: TyphonUtils.getAddressFromString(trx.address),
-          tokens: tokens,
-        };
-      });
-    const calculatedFee = transaction.value.calculateFee(txs);
-    updateFee(calculatedFee);
-  }
-
-  const updateInputsAndOutputs = () => {
+  function buildTransaction() {
     try {
+      //create new transaction
+      transaction.value = new Transaction({
+        protocolParams,
+      });
+
+      //add inputs to the transaction
       inputTrxItems.value.map((trx) => {
         const tokens = trx.tokens.map((token) => {
           return {
@@ -248,15 +278,15 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
         transaction.value.addInput({
           txId: trx.txId,
           index: Number(trx.index),
-          amount: BigNumber(trx.amount),
+          amount: convertADAToLovelace(BigNumber(trx.amount)),
           address: TyphonUtils.getAddressFromString(
             trx.address,
           ) as ShelleyAddress,
           tokens: tokens,
         });
       });
-    } catch {}
-    try {
+
+      //add outputs to the transaction
       outputTrxItems.value.map((trx) => {
         const tokens = trx.tokens.map((token) => {
           return {
@@ -266,31 +296,83 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
           };
         });
         transaction.value.addOutput({
-          amount: BigNumber(trx.amount).multipliedBy(1000000),
+          amount: convertADAToLovelace(BigNumber(trx.amount)),
           address: TyphonUtils.getAddressFromString(trx.address),
           tokens: tokens,
         });
       });
-    } catch {}
-  };
 
-  const buildTransaction = () => {
-    try {
-      transaction.value = new Transaction({
-        protocolParams: protocolParams as unknown as ProtocolParams,
+      //prepare transaction
+      transaction.value = transaction.value.prepareTransaction({
+        inputs: [],
+        changeAddress: TyphonUtils.getAddressFromString(
+          useAccountStore().account?.getReceiveAddressDetails()
+            .bech32 as string,
+        ),
       });
 
-      transaction.value.setFee(BigNumber(fee.value).dividedBy(1000000));
-      updateInputsAndOutputs();
+      //build the transaction
       const res = transaction.value.buildTransaction();
 
       transactionResponse.value.transactionHash = res.hash;
       transactionResponse.value.unsignedTransaction = res.payload;
+
+      //fetch and set fees
+      fee.value = convertLovelaceToADA(transaction.value.getFee()).toString();
     } catch (error) {
       console.log(error);
     }
-  };
+  }
+
+  function updateWitnesses(witnessesList: Array<VKeyWitness>) {
+    witnessesList.forEach((witness) => {
+      transaction.value.addWitness(witness);
+    });
+    witnesses.value = witnessesList;
+  }
+
+  function reset() {
+    transaction.value = new Transaction({
+      protocolParams,
+    });
+
+    fee.value = "";
+    signedTransactionCBOR.value = "";
+    transactionResponse.value = {
+      transactionHash: "",
+      unsignedTransaction: "",
+    };
+    witnesses.value = [];
+    inputTrxId.value = 0;
+    inputTokenId.value = 0;
+    outputTrxId.value = 0;
+    outputTokenId.value = 0;
+
+    inputTrxItems.value = [
+      {
+        id: inputTrxId.value++,
+        txId: "",
+        amount: "",
+        index: "",
+        address: "",
+        tokens: [],
+      },
+    ];
+
+    outputTrxItems.value = [
+      {
+        id: outputTrxId.value++,
+        address: "",
+        amount: "",
+        tokens: [],
+      },
+    ];
+  }
+
   return {
+    transaction,
+    currentNetwork,
+    updateNetwork,
     // input
     inputTrxItems,
     addInputTrx,
@@ -310,10 +392,14 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     clearOutputTrxItem,
     deleteOutputTrx,
 
-    calculateFee,
     fee,
-    updateFee,
     buildTransaction,
     transactionResponse,
+    updateWitnesses,
+    witnesses,
+    signedTransactionCBOR,
+    cardanoscanEndPoint,
+    updateCardanoscanEndPoint,
+    reset,
   };
 });

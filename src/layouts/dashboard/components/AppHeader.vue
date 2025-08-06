@@ -33,90 +33,93 @@
           </RouterLink>
         </nav>
       </div>
-      <div class="hidden md:block">
-        <div class="col-span-1 flex justify-end">
-          <AppButton
-            btnClass="border border-primary hover:bg-primary/[0.1] group"
-            size="sm"
-          >
-            <span class="text-primary text-xs font-medium"
-              >Preprod</span
-            ></AppButton
-          >
-        </div>
-      </div>
-      <!-- mobile view -->
-      <div class="col-span-1 flex justify-end md:hidden relative z-40">
-        <button @click="openMenu">
-          <Bars class="text-primary size-6 mt-2" />
+      <div class="flex items-center justify-end gap-4">
+        <button class="" @click="openSettings">
+          <SettingsIcon class="text-primary size-6" />
         </button>
-        <div
-          v-if="isMenuOpen"
-          class="fixed top-0 right-0 left-0 bottom-0 bg-black/50 transition-all duration-400 ease-in-out z-40"
-          @click="closeMenu"
-        >
+        <!-- mobile view -->
+        <div class="col-span-1 flex justify-end md:hidden relative z-40">
+          <button @click="openMenu">
+            <Bars class="text-primary size-6" />
+          </button>
           <div
-            class="fixed right-0 bg-white transition-opacity duration-400 ease-in-out overflow-scroll no-scrollbar"
-            :class="isMenuOpen ? 'w-[70%] md:w-[50%] h-full ' : ''"
+            v-if="isMenuOpen"
+            class="fixed top-0 right-0 left-0 bottom-0 bg-black/50 transition-all duration-400 ease-in-out z-40"
+            @click="closeMenu"
           >
             <div
-              class="flex justify-end p-2"
-              :class="
-                isMenuOpen
-                  ? ' transition-opacity-increase opacity-100'
-                  : ' transition-opacity-decrease opacity-0'
-              "
+              class="fixed right-0 bg-white transition-opacity duration-400 ease-in-out overflow-scroll no-scrollbar"
+              :class="isMenuOpen ? 'w-[70%] md:w-[50%] h-full ' : ''"
             >
-              <button @click="closeMenu">
-                <Close class="text-primary size-6 mt-2" />
-              </button>
-            </div>
-
-            <div class="flex flex-col items-start gap-y-0.5 text-sm w-full">
-              <RouterLink
-                :to="item.link === '/cbor' ? '' : item.link"
-                v-for="item in menuItems"
-                :key="item.name"
-                class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
-                :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
+              <div
+                class="flex justify-end p-2"
+                :class="
+                  isMenuOpen
+                    ? ' transition-opacity-increase opacity-100'
+                    : ' transition-opacity-decrease opacity-0'
+                "
               >
-                {{ item.name }}</RouterLink
-              >
+                <button @click="closeMenu">
+                  <Close class="text-primary size-6 mt-2" />
+                </button>
+              </div>
 
-              <div class="px-5 mt-2 w-full">
-                <AppButton
-                  btnClass="border border-primary hover:bg-primary/[0.1] group w-full"
-                  size="sm"
+              <div class="flex flex-col items-start gap-y-0.5 text-sm w-full">
+                <RouterLink
+                  :to="item.link === '/cbor' ? '' : item.link"
+                  v-for="item in menuItems"
+                  :key="item.name"
+                  class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
+                  :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
                 >
-                  <span class="text-primary text-xs font-medium"
-                    >Preprod</span
-                  ></AppButton
+                  {{ item.name }}</RouterLink
                 >
               </div>
+              <div class="flex flex-col"></div>
             </div>
-            <div class="flex flex-col"></div>
           </div>
         </div>
       </div>
+
+      <DialogBox
+        :openDialog="isSettingsOpen"
+        dialogSize="lg"
+        @closeDialog="closeSettings"
+      >
+        <template #header> Settings </template>
+        <template #body>
+          <Settings />
+        </template>
+      </DialogBox>
     </header>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, onMounted, ref } from "vue";
-import AppButton from "@/components/buttons/AppButton.vue";
+import { computed, defineComponent, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import Bars from "@/assets/icons/bars.vue";
 import Close from "@/assets/icons/close.vue";
+import SettingsIcon from "@/assets/icons/settings.vue";
+import DialogBox from "@/components/dialog/dialog.vue";
+import Settings from "@/components/settings.vue";
+import { Network } from "@/enums/networks";
 
-export default {
-  components: { AppButton, Bars, Close },
+export default defineComponent({
+  components: {
+    Bars,
+    Close,
+    SettingsIcon,
+    Settings,
+    DialogBox,
+  },
   setup() {
     const menuItems = ref<Array<{ name: string; link: string }>>([
       { name: "Account", link: "/account/createAccount" },
       { name: "Transaction", link: "/transaction/buildTransaction" },
       { name: "Cbor View", link: "/cbor" },
     ]);
+
     const activeLink = ref<string>("/account/createAccount");
     const isMenuOpen = ref<boolean>(false);
     const route = useRoute();
@@ -141,7 +144,20 @@ export default {
 
     onMounted(() => {
       activeLink.value = route.path;
+      if (!localStorage.getItem("cardanoLabSelectedNetwork")) {
+        localStorage.setItem("cardanoLabSelectedNetwork", Network.MAINNET);
+      }
     });
+
+    const isSettingsOpen = ref(false);
+
+    function openSettings() {
+      isSettingsOpen.value = true;
+    }
+
+    function closeSettings() {
+      isSettingsOpen.value = false;
+    }
 
     return {
       menuItems,
@@ -150,7 +166,11 @@ export default {
       openMenu,
       closeMenu,
       activeNavItem,
+
+      isSettingsOpen,
+      openSettings,
+      closeSettings,
     };
   },
-};
+});
 </script>
