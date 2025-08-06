@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-y-5">
     <div
-      v-show="!cardanoscanEndPoint"
+      v-show="!trxSubmitEndPoint"
       class="text-sm text-red-500 border border-red-300 bg-red-500/10 px-2 py-2 rounded-md"
     >
       Please configure the transaction‐submission endpoint under Settings to
@@ -183,6 +183,15 @@
         </div>
       </div> -->
       <!-- signature -->
+      <AppButton
+        :is-disabled="!signatures.length"
+        btn-class="bgGradient max-w-max mt-8"
+        size="lg"
+        @on-click="addSignature"
+      >
+        <span class="text-sm text-white">Add Signature</span>
+      </AppButton>
+
       <div class="w-full card1 flex flex-col gap-y-2">
         <div class="flex items-center gap-x-2">
           <div class="w-2 h-2 rounded-full bg-gray-800"></div>
@@ -190,32 +199,36 @@
             <span class="textColor1 text-sm font-medium">SIGNATURE</span>
           </div>
         </div>
-        <div
-          v-for="(signature, index) in signatures"
-          :key="index"
-          class="cardWhite flex flex-col gap-y-4"
-        >
-          <div class="headingBadge">
-            <span>Signature #{{ index + 1 }}</span>
-          </div>
-          <div class="flex flex-col gap-y-0.5">
-            <span class="textColor2 text-xs">Public key</span>
-            <div class="w-full flex gap-x-4 items-center">
-              <span class="text-sm textColor1 break-all">
-                {{ signature.publicKey.toString("hex") }}
-              </span>
+        <div v-if="!signatures.length || !isShowSignature">----</div>
+
+        <div v-else>
+          <div
+            v-for="(signature, index) in signatures"
+            :key="index"
+            class="cardWhite flex flex-col gap-y-4"
+          >
+            <div class="headingBadge">
+              <span>Signature #{{ index + 1 }}</span>
             </div>
-          </div>
-          <div class="flex flex-col gap-y-0.5">
-            <span class="textColor2 text-xs">signature</span>
-            <div class="w-full flex gap-x-8 justify-between items-center">
-              <span class="text-sm textColor1 break-all">
-                {{ signature.signature.toString("hex") }}
-              </span>
+            <div class="flex flex-col gap-y-0.5">
+              <span class="textColor2 text-xs">Public key</span>
+              <div class="w-full flex gap-x-4 items-center">
+                <span class="text-sm textColor1 break-all">
+                  {{ signature.publicKey.toString("hex") }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-y-0.5">
+              <span class="textColor2 text-xs">signature</span>
+              <div class="w-full flex gap-x-8 justify-between items-center">
+                <span class="text-sm textColor1 break-all">
+                  {{ signature.signature.toString("hex") }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-        <div v-if="!signatures.length">----</div>
       </div>
       <div class="text-red-500 text-sm mt-4">
         {{ submitTransactionError }}
@@ -308,7 +321,7 @@ export default defineComponent({
       }
     }
 
-    const cardanoscanEndPoint = computed(() => trxStore.cardanoscanEndPoint);
+    const trxSubmitEndPoint = computed(() => trxStore.trxSubmitEndPoint);
 
     const isTransactionSubmitted = ref(false);
 
@@ -318,7 +331,7 @@ export default defineComponent({
       submitTransactionError.value = "";
       try {
         const res = await axios.post(
-          cardanoscanEndPoint.value,
+          trxSubmitEndPoint.value,
           Buffer.from(trxStore.signedTransactionCBOR, "hex"),
           { headers: { "Content-Type": "application/cbor" } },
         );
@@ -344,9 +357,15 @@ export default defineComponent({
     const isSubmitButtonDisabled = computed(
       () =>
         !transactionHash.value ||
-        !cardanoscanEndPoint.value ||
+        !trxSubmitEndPoint.value ||
         !signatures.value.length,
     );
+
+    const isShowSignature = ref(false);
+
+    function addSignature() {
+      isShowSignature.value = true;
+    }
 
     return {
       privateKeys,
@@ -358,12 +377,15 @@ export default defineComponent({
       outputs,
       signatures,
       submitTransaction,
-      cardanoscanEndPoint,
+      trxSubmitEndPoint,
       isTransactionSubmitted,
       closeTransactionSubmissionSuccessDialog,
       transactionHashLink,
       submitTransactionError,
       isSubmitButtonDisabled,
+
+      isShowSignature,
+      addSignature,
     };
   },
 });

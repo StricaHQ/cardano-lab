@@ -30,26 +30,26 @@
       </div>
     </div>
     <div class="card1 space-y-2">
-      <div class="text-sm">Cardanoscan Submit Endpoint</div>
+      <div class="text-sm">Transaction Submission Endpoint</div>
       <div class="flex gap-4">
         <input
-          id="cardanoscanEndPoint"
+          id="trxSubmitEndPoint"
           class="inputField-2"
           type="text"
           placeholder="URL"
-          v-model="cardanoscanEndPoint"
+          v-model="trxSubmitEndPoint"
         />
         <div class="flex justify-end">
           <AppButton
             size="sm"
             :btnClass="
-              isCardanoscanEndPointUpdated
+              isTrxSubmitEndPointUpdated
                 ? 'bg-green-500/10 text-green-700 text-[10px] border border-green-500/50'
                 : 'bg-secondary text-gray-100 text-[10px] '
             "
-            @onClick="updateCardanoscanEndPoint"
+            @onClick="updateTrxSubmitEndPoint"
           >
-            <Check v-if="isCardanoscanEndPointUpdated" class="size-3.5" />
+            <Check v-if="isTrxSubmitEndPointUpdated" class="size-3.5" />
             <span v-else> Update </span>
           </AppButton>
         </div>
@@ -76,16 +76,16 @@ export default defineComponent({
   setup() {
     const trxStore = useTransactionsStore();
 
-    const cardanoscanEndPoint = ref(trxStore.cardanoscanEndPoint);
+    const trxSubmitEndPoint = ref(trxStore.trxSubmitEndPoint);
     const isNetworksDropdownOpen = ref(false);
-    const isCardanoscanEndPointUpdated = ref(false);
+    const isTrxSubmitEndPointUpdated = ref(false);
 
-    const updateCardanoscanEndPoint = () => {
-      isCardanoscanEndPointUpdated.value = true;
-      trxStore.updateCardanoscanEndPoint(cardanoscanEndPoint.value);
+    const updateTrxSubmitEndPoint = () => {
+      isTrxSubmitEndPointUpdated.value = true;
+      trxStore.updateTrxSubmitEndPoint(trxSubmitEndPoint.value);
 
       setTimeout(() => {
-        isCardanoscanEndPointUpdated.value = false;
+        isTrxSubmitEndPointUpdated.value = false;
       }, 3000);
     };
 
@@ -124,14 +124,14 @@ export default defineComponent({
       document.removeEventListener("click", onClickOutside);
     });
     return {
-      isCardanoscanEndPointUpdated,
-      cardanoscanEndPoint,
+      isTrxSubmitEndPointUpdated,
+      trxSubmitEndPoint,
       networksDropdownRef,
       isNetworksDropdownOpen,
       openNetworksDropdown,
       closeNetworksDropdown,
       currentNetwork,
-      updateCardanoscanEndPoint,
+      updateTrxSubmitEndPoint,
       updateNetwork,
       networksList: Network,
     };

@@ -24,13 +24,13 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     currentNetwork.value = network;
   }
 
-  const cardanoscanEndPoint = ref(
-    localStorage.getItem("cardanoscanEndPoint") || "",
+  const trxSubmitEndPoint = ref(
+    localStorage.getItem("trxSubmitEndPoint") || "",
   );
 
-  function updateCardanoscanEndPoint(endPoint: string) {
-    localStorage.setItem("cardanoscanEndPoint", endPoint);
-    cardanoscanEndPoint.value = endPoint;
+  function updateTrxSubmitEndPoint(endPoint: string) {
+    localStorage.setItem("trxSubmitEndPoint", endPoint);
+    trxSubmitEndPoint.value = endPoint;
   }
 
   const protocolParamsFromJson =
@@ -398,8 +398,8 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     updateWitnesses,
     witnesses,
     signedTransactionCBOR,
-    cardanoscanEndPoint,
-    updateCardanoscanEndPoint,
+    trxSubmitEndPoint,
+    updateTrxSubmitEndPoint,
     reset,
   };
 });
