@@ -39,57 +39,66 @@
   scrollbar-width: none; /* Firefox */
 }
 
-body{
+body {
   @apply font-Poppins scroll-container;
 }
 
 .bgGradient {
-  @apply bg-gradient-to-br from-[#013499] to-[#012366]
+  @apply bg-gradient-to-br from-[#013499] to-[#012366];
 }
 
 .textColor {
-  @apply text-textColor
+  @apply text-textColor;
 }
 
 .textColor1 {
-  @apply text-textColor-1
+  @apply text-textColor-1;
 }
 
 .textColor2 {
-  @apply text-textColor-2
+  @apply text-textColor-2;
 }
 
 /* border */
 .borderColor {
-  @apply border-borderColor
+  @apply border-borderColor;
 }
 .borderBgColor {
-  @apply bg-borderColor
+  @apply bg-borderColor;
 }
 
 /* cardBg */
 .cardBackgroundColor1 {
-  @apply bg-cardBackgroundColor
+  @apply bg-cardBackgroundColor;
 }
 .card1 {
-  @apply cardBackgroundColor1 border border-gray-200 rounded-sm p-4
+  @apply cardBackgroundColor1 border border-gray-200 rounded-sm p-4;
 }
 .cardWhite {
-  @apply bg-white border border-gray-100 rounded-sm p-4
+  @apply bg-white border border-gray-100 rounded-sm p-4;
 }
 
 /* input */
 .inputFieldBg {
-  @apply bg-inputField
+  @apply bg-inputField;
 }
-.inputLabel{
-  @apply text-xs textColor2 pl-2
+.inputLabel {
+  @apply text-xs textColor2 pl-2;
 }
 .inputField {
-  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 rounded-md w-full  text-sm
+  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
+}
+
+.inputField-2 {
+  @apply h-8 px-4 textColor placeholder:text-xs placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
 }
 
 /* badge ui */
 .headingBadge {
-  @apply bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center text-primary text-xs font-medium
+  @apply bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center text-primary text-xs font-medium;
+}
+
+/* error message */
+.errorMessage {
+  @apply h-2 text-xs text-red-500 leading-none pl-2;
 }

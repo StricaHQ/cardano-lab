@@ -73,3 +73,28 @@ export function getBaseAddress(
 
   return address;
 }
+
+export const getRewardAddress = (
+  accountXPub: Bip32PublicKey,
+  currencyId: CryptoCurrencyId,
+  stakePath: BipPath,
+) => {
+  const networkParams = getNetworkParameters(currencyId);
+
+  const stakeHashHex = accountXPub
+    .derive(stakePath.chain)
+    .derive(stakePath.index)
+    .toPublicKey()
+    .hash();
+
+  const rewardAddress = new TyphonAddress.RewardAddress(
+    networkParams.networkId,
+    {
+      hash: stakeHashHex,
+      type: TyphonTypes.HashType.ADDRESS,
+      bipPath: stakePath,
+    },
+  );
+
+  return rewardAddress;
+};

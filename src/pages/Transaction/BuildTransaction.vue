@@ -1,5 +1,11 @@
 <template>
   <div class="flex flex-col gap-y-5">
+    <div
+      v-show="!isAccountAvailable"
+      class="text-sm text-red-500 border border-red-300 bg-red-500/10 px-2 py-2 rounded-md"
+    >
+      No account found. Please create an account to build a transaction.
+    </div>
     <div>
       <span class="textColor font-bold text-xl">Build Transaction</span>
     </div>
@@ -13,6 +19,7 @@
         </div>
         <div class="flex flex-col gap-y-4">
           <InputForm
+            ref="inputFrom"
             v-for="(item, index) in inputTrxForm"
             :key="item.id"
             :trxCount="index + 1"
@@ -35,6 +42,7 @@
         </div>
         <div class="flex flex-col gap-y-4">
           <OutputForm
+            ref="outputForm"
             v-for="(item, index) in outputTrxForm"
             :key="item.id"
             :trxCount="index + 1"
@@ -50,33 +58,79 @@
       </div>
     </div>
     <div>
-      <div class="w-full card1 flex flex-col gap-y-2">
-        <div>
-          <span class="textColor1 text-sm font-medium">Fee</span>
+      <div
+        class="w-full borderColor border rounded-md p-4 cardBackgroundColor1 flex flex-col gap-y-2"
+      >
+        <label class="textColor2 text-xs">Fee</label>
+        <div class="textColor1 text-sm">{{ fee || "----" }}</div>
+      </div>
+    </div>
+
+    <AppButton
+      size="lg"
+      btnClass="bgGradient max-w-max"
+      @onClick="buildTransaction"
+      :isDisabled="!isAccountAvailable"
+    >
+      <span class="text-sm text-white">Build Transaction</span>
+    </AppButton>
+
+    <div
+      v-if="
+        transactionResponse.transactionHash ||
+        transactionResponse.unsignedTransaction
+      "
+      class="border borderColor rounded-md p-4 text-sm space-y-2 mt-8 bg-primary/10"
+    >
+      <div class="flex gap-4">
+        <div class="textColor1 flex min-w-48">Transaction Hash</div>
+        <div class="flex break-all">
+          {{ transactionResponse.transactionHash || "----" }}
         </div>
-        <div
-          class="cardWhite w-full md:w-[600px] px-4 flex justify-start items-center h-10"
-        >
-          <span class="textColor2 text-sm">0.123456</span>
+
+        <CopyButton :content="transactionResponse.transactionHash" />
+      </div>
+      <div class="border-b borderColor w-full"></div>
+      <div class="flex gap-4">
+        <div class="textColor1 flex min-w-48">Unsigned Transaction</div>
+        <div class="flex break-all">
+          {{ transactionResponse.unsignedTransaction || "----" }}
         </div>
       </div>
     </div>
-    <AppButton size="lg" btnClass="bgGradient max-w-max"
-      ><span class="text-sm text-white">Sign Transaction</span></AppButton
+
+    <AppButton
+      v-if="
+        transactionResponse.transactionHash ||
+        transactionResponse.unsignedTransaction
+      "
+      size="lg"
+      btnClass="bgGradient max-w-max"
+      @onClick="signTransaction"
     >
+      <span class="text-sm text-white">Sign Transaction</span>
+    </AppButton>
   </div>
 </template>
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 
 <script lang="ts">
-import { computed } from "vue";
+import { computed, defineComponent, ref } from "vue";
 import InputForm from "./components/InputForm.vue";
 import AppButton from "@/components/buttons/AppButton.vue";
 import { useTransactionsStore } from "./store";
 import OutputForm from "./components/OutputForm.vue";
-export default {
-  components: { InputForm, AppButton, OutputForm },
+import CopyButton from "@/components/buttons/CopyButton.vue";
+import { createWitnesses } from "@/lib/wallet";
+import { useRouter } from "vue-router";
+import { useAccountStore } from "@/stores/openStore";
+import type { Account } from "@/lib/account";
+
+export default defineComponent({
+  components: { InputForm, AppButton, OutputForm, CopyButton },
   setup() {
     const trxStore = useTransactionsStore();
+    const router = useRouter();
 
     const inputTrxForm = computed(() => {
       return trxStore.inputTrxItems;
@@ -94,12 +148,66 @@ export default {
       trxStore.addOutputTrx();
     }
 
+    const outputForm = ref();
+    const inputFrom = ref();
+
+    function buildTransaction() {
+      //if any of the fields from input or output forms invalid, restrict the build transaction
+      let isInputFormsHaveValidData = true;
+      let isOutputFormsHaveValidData = true;
+
+      inputFrom.value.forEach((form: any) => {
+        isInputFormsHaveValidData = form.isFormValid();
+      });
+
+      outputForm.value.forEach((form: any) => {
+        isOutputFormsHaveValidData = form.isFormValid();
+      });
+
+      if (isInputFormsHaveValidData && isOutputFormsHaveValidData) {
+        trxStore.buildTransaction();
+      }
+    }
+
+    const fee = computed(() => trxStore.fee);
+
+    const accountStore = useAccountStore();
+
+    const transactionResponse = computed(() => trxStore.transactionResponse);
+
+    const isAccountAvailable = computed(() =>
+      accountStore.account?.xpub ? true : false,
+    );
+    const signTransaction = () => {
+      const requiredSigners = trxStore.transaction.getRequiredWitnesses();
+      const account = accountStore.account;
+
+      const witnesses = createWitnesses({
+        requiredSigners,
+        account: account as Account,
+        txHash: trxStore.transaction.getTransactionHash(),
+      });
+
+      trxStore.updateWitnesses(witnesses);
+
+      trxStore.signedTransactionCBOR =
+        trxStore.transaction.buildTransaction().payload;
+
+      router.push("/transaction/signTransaction");
+    };
     return {
       inputTrxForm,
       addInputTransaction,
       outputTrxForm,
       addOutputTransaction,
+      fee,
+      buildTransaction,
+      transactionResponse,
+      outputForm,
+      inputFrom,
+      signTransaction,
+      isAccountAvailable,
     };
   },
-};
+});
 </script>

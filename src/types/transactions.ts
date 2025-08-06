@@ -1,20 +1,22 @@
-type Tokens = {
+export type Token = {
   id: number;
-  name: string;
+  policyId: string;
+  assetName: string;
   amount: string;
 };
 
 export type InputTrxItem = {
   id: number;
-  trxId: string;
-  trxIndex: string;
-  adaAmount: string;
-  tokens: Array<Tokens>;
+  txId: string;
+  index: string;
+  amount: string;
+  address: string;
+  tokens: Array<Token>;
 };
 
 export type OutputTrxItem = {
   id: number;
   address: string;
-  adaAmount: string;
-  tokens: Array<Tokens>;
+  amount: string;
+  tokens: Array<Token>;
 };

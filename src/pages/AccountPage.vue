@@ -24,15 +24,9 @@
             class="w-full border borderColor mt-2 rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
           >
             <span class="text-sm textColor1 font-LabMono">
-              grace brief hobby hope small wrong disorder cream rail fold fruit
-              job hurry security tip
+              {{ accountStore.wallet?.mnemonic }}
             </span>
-            <CopyButton
-              content="
-               grace brief hobby hope small wrong disorder cream rail fold fruit
-              job hurry security tip
-              "
-            />
+            <CopyButton :content="accountStore.wallet?.mnemonic" />
           </div>
         </div>
 
@@ -64,13 +58,11 @@
               class="w-full border borderColor rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
             >
               <span class="text-sm textColor1 break-all">
-                stake_test1ur7lpyrdsk2q5t2mmmuhajmyelcy6q4lx4wmmrw704pzypspw7wl3
+                {{ accountStore.account.getStakeAddress().bech32 }}
               </span>
 
               <CopyButton
-                content="
-                stake_test1ur7lpyrdsk2q5t2mmmuhajmyelcy6q4lx4wmmrw704pzypspw7wl3
-                "
+                :content="accountStore.account.getStakeAddress().bech32"
               />
             </div>
           </div>

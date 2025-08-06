@@ -14,28 +14,44 @@
             placeholder="Transaction Id"
             v-model="trxIdField"
           />
+          <div class="errorMessage">{{ trxIdErrorMessage }}</div>
         </div>
         <div class="w-full md:w-44 flex flex-col gap-y-1">
           <label class="inputLabel" for="utxoIndex">INDEX</label>
           <input
             id="utxoIndex"
             class="inputField"
-            type="number"
+            type="text"
             placeholder="0"
-            v-model="trxIndexField"
+            v-model="indexField"
+            @input="onInputIndex"
           />
+          <div class="errorMessage">{{ indexErrorMessage }}</div>
         </div>
       </div>
-      <div class="flex gap-x-4 w-full">
-        <div class="w-full md:w-[500px] flex flex-col gap-y-1">
-          <label class="inputLabel" for="adaAmount">ADA</label>
+      <div class="flex flex-col gap-y-3 md:flex-row gap-x-4 w-full">
+        <div class="w-full flex flex-col gap-y-1">
+          <label class="inputLabel" for="address">Address</label>
           <input
-            id="adaAmount"
+            id="address"
             class="inputField"
-            type="number"
-            placeholder="0.0000"
-            v-model="adaAmountField"
+            type="text"
+            placeholder="Address"
+            v-model="addressField"
           />
+          <div class="errorMessage">{{ addressErrorMessage }}</div>
+        </div>
+        <div class="w-full md:w-96 flex flex-col gap-y-1">
+          <label class="inputLabel" for="amount">ADA</label>
+          <input
+            id="amount"
+            class="inputField"
+            type="text"
+            placeholder="0.000000"
+            @input="onInputAmount"
+            v-model="amountField"
+          />
+          <div class="errorMessage">{{ amountErrorMessage }}</div>
         </div>
       </div>
       <div class="flex gap-x-4 w-full">
@@ -46,20 +62,31 @@
           >
             <TokenBadge
               v-for="token in tokensList"
-              :key="token.name"
-              :tokenName="token.name"
-              :tokenAmount="token.amount"
+              :key="token.id"
+              :policyId="token.policyId"
+              :assetName="token.assetName"
+              :amount="token.amount"
               :enableDelete="true"
               @deleteToken="deleteToken(token.id)"
             />
             <AppButton
-              :isDisabled="false"
               size="sm"
               btnClass="bg-secondary"
-              @onClick="addTokens"
+              @onClick="openAddTokenDialog"
             >
-              <span class="text-xs text-white">Add Token</span></AppButton
+              <span class="text-xs text-white">Add Token</span>
+            </AppButton>
+
+            <DialogBox
+              :openDialog="showAddTokenDialog"
+              dialogSize="sm"
+              @closeDialog="closeAddTokenDialog"
             >
+              <template #header> Add Token </template>
+              <template #body>
+                <AddTokenDialog @updateTokenData="addTokens" />
+              </template>
+            </DialogBox>
           </div>
         </div>
       </div>
@@ -71,40 +98,50 @@
           btnClass="border border-red-500 hover:border-red-700 space-x-2"
           @onClick="clearTrxItem"
         >
-          <font-awesome-icon
-            class="text-red-500 text-xs"
-            :icon="['fas', 'eraser']"
-          />
-          <span class="text-xs text-red-500">Clear</span></AppButton
-        >
+          <Eraser class="text-red-500 size-4" />
+          <span class="text-xs text-red-500">Clear</span>
+        </AppButton>
         <AppButton
           size="sm"
           btnClass="border border-red-500 bg-red-50 space-x-2"
           @onClick="deleteTrxItem"
         >
-          <font-awesome-icon
-            class="text-red-500 text-xs"
-            :icon="['fas', 'trash']"
-          />
-          <span class="text-xs text-red-500">Delete</span></AppButton
-        >
+          <Delete class="text-red-500 size-4" />
+          <span class="text-xs text-red-500">Delete</span>
+        </AppButton>
       </div>
     </div>
   </div>
 </template>
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useTransactionsStore } from "../store";
+import AddTokenDialog from "./addTokenDialog.vue";
+import DialogBox from "@/components/dialog/dialog.vue";
+import { utils as TyphonUtils } from "@stricahq/typhonjs";
+import { isHexString } from "@/utils/inputValidators";
+import ShelleyTypeAddress from "@stricahq/typhonjs/dist/address/ShelleyTypeAddress";
+import Delete from "@/assets/icons/delete.vue";
+import Eraser from "@/assets/icons/eraser.vue";
 import TokenBadge from "@/components/TokenBadge.vue";
+import { Network } from "@/enums/networks";
 
 export default {
+  components: {
+    AppButton,
+    DialogBox,
+    AddTokenDialog,
+    Delete,
+    Eraser,
+    TokenBadge,
+  },
   props: {
     trxCount: { type: Number, required: true },
     trxItemId: { type: Number, required: true },
   },
-  components: { AppButton, TokenBadge },
   setup(props) {
     const trxStore = useTransactionsStore();
 
@@ -112,67 +149,197 @@ export default {
       return trxStore.getInputTrxById(props.trxItemId);
     });
 
-    const trxIdField = computed({
-      get() {
-        return transaction.value?.trxId;
-      },
-      set(value) {
-        if (value) {
-          trxStore.setInputTrxFields(props.trxItemId, "trxId", value);
-        }
-      },
+    const trxIdErrorMessage = ref("");
+    const addressErrorMessage = ref("");
+    const indexErrorMessage = ref("");
+    const amountErrorMessage = ref("");
+
+    //transaction Id
+    const trxIdField = ref(transaction.value?.txId);
+
+    watch(trxIdField, () => {
+      trxStore.setInputTrxFields(
+        props.trxItemId,
+        "txId",
+        trxIdField.value as string,
+      );
+      trxIdErrorMessage.value = "";
     });
 
-    const adaAmountField = computed({
-      get() {
-        return transaction.value?.adaAmount;
-      },
-      set(value) {
-        if (value) {
-          trxStore.setInputTrxFields(props.trxItemId, "adaAmount", value);
-        }
-      },
+    //address
+    const addressField = ref(transaction.value?.address);
+
+    watch(addressField, () => {
+      trxStore.setInputTrxFields(
+        props.trxItemId,
+        "address",
+        addressField.value as string,
+      );
+      addressErrorMessage.value = "";
     });
-    const trxIndexField = computed({
-      get() {
-        return transaction.value?.trxIndex;
-      },
-      set(value) {
-        if (value) {
-          trxStore.setInputTrxFields(props.trxItemId, "trxIndex", value);
-        }
-      },
+
+    //amount
+    const amountField = ref(transaction.value?.amount);
+
+    watch(amountField, () => {
+      trxStore.setInputTrxFields(
+        props.trxItemId,
+        "amount",
+        amountField.value as string,
+      );
+      amountErrorMessage.value = "";
     });
+
+    function onInputAmount(event: any) {
+      const raw = event.target.value;
+      if (raw.match(/^(\d+)?(\.\d{0,6})?$/)) {
+        amountField.value = raw;
+      } else {
+        amountField.value = raw
+          .replace(/[^0-9.]/g, "") // Remove non-numeric and non-dot
+          .replace(/^([^.]*\.)|\./g, "$1") // Keep only the first dot
+          .replace(/^(\d*\.\d{0,6}).*$/, "$1"); // Limit to 6 decimals
+      }
+    }
+
+    //index
+    const indexField = ref(transaction.value?.index);
+
+    watch(indexField, () => {
+      trxStore.setInputTrxFields(
+        props.trxItemId,
+        "index",
+        indexField.value as string,
+      );
+      indexErrorMessage.value = "";
+    });
+
+    function onInputIndex(event: any) {
+      indexField.value = event.target.value.replace(/\D+/g, "");
+    }
 
     const tokensList = computed(() => {
       return trxStore.getInputTrxById(props.trxItemId)?.tokens ?? [];
     });
 
-    function addTokens() {
-      trxStore.addTokensToInputTrx(props.trxItemId, "example", "1234");
+    const showAddTokenDialog = ref(false);
+
+    function addTokens(data: {
+      policyId: string;
+      assetName: string;
+      amount: string;
+    }) {
+      closeAddTokenDialog();
+      trxStore.addTokensToInputTrx({
+        trxId: props.trxItemId,
+        policyId: data.policyId,
+        assetName: data.assetName,
+        amount: data.amount,
+      });
+    }
+
+    function openAddTokenDialog() {
+      showAddTokenDialog.value = true;
+    }
+
+    function closeAddTokenDialog() {
+      showAddTokenDialog.value = false;
     }
 
     function deleteToken(id: number) {
-      trxStore.deleteInputTrxToken(props.trxItemId, id);
+      trxStore.deleteInputTrxToken({ trxId: props.trxItemId, tokenId: id });
     }
 
     function clearTrxItem() {
       trxStore.clearInputTrxItem(props.trxItemId);
+      trxIdField.value = transaction.value?.txId;
+      indexField.value = transaction.value?.index;
+      addressField.value = transaction.value?.address;
+      amountField.value = transaction.value?.amount;
     }
 
     function deleteTrxItem() {
       trxStore.deleteInputTrx(props.trxItemId);
     }
 
+    function isFormValid() {
+      if (!trxIdField.value) {
+        trxIdErrorMessage.value = "Required";
+      } else {
+        if (!isHexString(trxIdField.value as string)) {
+          trxIdErrorMessage.value =
+            "Invalid format. Use only hexadecimal characters";
+        } else if (trxIdField.value.length != 64) {
+          trxIdErrorMessage.value = "Must be 64 characters long.";
+        }
+      }
+
+      if (!addressField.value) {
+        addressErrorMessage.value = "Required";
+      } else {
+        try {
+          const addressObj = TyphonUtils.getAddressFromString(
+            addressField.value as string,
+          ) as any;
+
+          const selectedNetwork = localStorage.getItem(
+            "cardanoLabSelectedNetwork",
+          ) as Network;
+
+          if (
+            (addressObj.networkId == 0 && selectedNetwork == Network.MAINNET) ||
+            (addressObj.networkId == 1 && selectedNetwork == Network.PREPROD)
+          ) {
+            addressErrorMessage.value =
+              "Address is not a valid " + selectedNetwork + " address.";
+          }
+          if (!(addressObj instanceof ShelleyTypeAddress)) {
+            addressErrorMessage.value = "Only shelley address supported";
+          }
+        } catch {
+          addressErrorMessage.value = "Invalid address";
+        }
+      }
+
+      if (!indexField.value) {
+        indexErrorMessage.value = "Required";
+      }
+
+      if (!amountField.value) {
+        amountErrorMessage.value = "Required";
+      }
+
+      if (
+        trxIdErrorMessage.value ||
+        addressErrorMessage.value ||
+        indexErrorMessage.value ||
+        amountErrorMessage.value
+      ) {
+        return false;
+      }
+
+      return true;
+    }
     return {
       addTokens,
       deleteToken,
       trxIdField,
-      trxIndexField,
-      adaAmountField,
+      indexField,
+      amountField,
+      addressField,
       tokensList,
       clearTrxItem,
       deleteTrxItem,
+      showAddTokenDialog,
+      openAddTokenDialog,
+      closeAddTokenDialog,
+      isFormValid,
+      trxIdErrorMessage,
+      addressErrorMessage,
+      amountErrorMessage,
+      indexErrorMessage,
+      onInputAmount,
+      onInputIndex,
     };
   },
 };
