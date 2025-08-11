@@ -12,21 +12,21 @@
           size="lg"
           btnClass="bgGradient"
           class="mt-5"
-          @onClick="accountStore.setAccount()"
+          @onClick="setAccount()"
         >
           <span class="text-sm text-white">Create Account</span>
         </AppButton>
       </div>
-      <div class="flex flex-col gap-y-10" v-if="accountStore.account">
+      <div class="flex flex-col gap-y-10" v-if="account">
         <div>
           <span class="text-sm textColor">Wallet Seed</span>
           <div
             class="w-full border borderColor mt-2 rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
           >
             <span class="text-sm textColor1 font-LabMono">
-              {{ accountStore.wallet?.mnemonic }}
+              {{ wallet?.mnemonic }}
             </span>
-            <CopyButton :content="accountStore.wallet?.mnemonic" />
+            <CopyButton :content="wallet?.mnemonic" />
           </div>
         </div>
 
@@ -38,13 +38,11 @@
               class="w-full border borderColor rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
             >
               <span class="text-sm textColor1 break-all">
-                {{ accountStore.account.getReceiveAddressDetails().bech32 }}
+                {{ account.getReceiveAddressDetails().bech32 }}
               </span>
 
               <CopyButton
-                :content="
-                  accountStore.account.getReceiveAddressDetails().bech32
-                "
+                :content="account.getReceiveAddressDetails().bech32"
               />
             </div>
           </div>
@@ -58,12 +56,10 @@
               class="w-full border borderColor rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
             >
               <span class="text-sm textColor1 break-all">
-                {{ accountStore.account.getStakeAddress().bech32 }}
+                {{ account.getStakeAddress().bech32 }}
               </span>
 
-              <CopyButton
-                :content="accountStore.account.getStakeAddress().bech32"
-              />
+              <CopyButton :content="account.getStakeAddress().bech32" />
             </div>
           </div>
         </div>
@@ -82,14 +78,14 @@
               <div class="flex gap-x-8 justify-between items-center w-full">
                 <span class="text-sm textColor1 break-all">
                   {{
-                    accountStore.account.getReceiveAddressDetails()
-                      .paymentCredential.pubKeyHex
+                    account.getReceiveAddressDetails().paymentCredential
+                      .pubKeyHex
                   }}
                 </span>
                 <CopyButton
                   :content="
-                    accountStore.account.getReceiveAddressDetails()
-                      .paymentCredential.pubKeyHex
+                    account.getReceiveAddressDetails().paymentCredential
+                      .pubKeyHex
                   "
                 />
               </div>
@@ -107,14 +103,14 @@
               <div class="flex gap-x-8 justify-between items-center w-full">
                 <span class="text-sm textColor1 break-all">
                   {{
-                    accountStore.account.getReceiveAddressDetails()
-                      .paymentCredential.privKeyHex
+                    account.getReceiveAddressDetails().paymentCredential
+                      .privKeyHex
                   }}
                 </span>
                 <CopyButton
                   :content="
-                    accountStore.account.getReceiveAddressDetails()
-                      .paymentCredential.privKeyHex
+                    account.getReceiveAddressDetails().paymentCredential
+                      .privKeyHex
                   "
                 />
               </div>
@@ -131,14 +127,12 @@
               <div class="flex gap-x-8 justify-between items-center w-full">
                 <span class="text-sm textColor1 break-all">
                   {{
-                    accountStore.account.getReceiveAddressDetails()
-                      .stakeCredential.pubKeyHex
+                    account.getReceiveAddressDetails().stakeCredential.pubKeyHex
                   }}
                 </span>
                 <CopyButton
                   :content="
-                    accountStore.account.getReceiveAddressDetails()
-                      .stakeCredential.pubKeyHex
+                    account.getReceiveAddressDetails().stakeCredential.pubKeyHex
                   "
                 />
               </div>
@@ -155,14 +149,14 @@
               <div class="flex gap-x-8 justify-between items-center w-full">
                 <span class="text-sm textColor1 break-all">
                   {{
-                    accountStore.account.getReceiveAddressDetails()
-                      .stakeCredential.privKeyHex
+                    account.getReceiveAddressDetails().stakeCredential
+                      .privKeyHex
                   }}
                 </span>
                 <CopyButton
                   :content="
-                    accountStore.account.getReceiveAddressDetails()
-                      .stakeCredential.privKeyHex
+                    account.getReceiveAddressDetails().stakeCredential
+                      .privKeyHex
                   "
                 />
               </div>
@@ -178,15 +172,24 @@
 import AppButton from "@/components/buttons/AppButton.vue";
 import CopyButton from "@/components/buttons/CopyButton.vue";
 import { useAccountStore } from "@/stores/openStore";
+import { computed } from "vue";
 
 export default {
   components: { AppButton, CopyButton },
   setup() {
     const accountStore = useAccountStore();
 
-    return {
-      accountStore,
-    };
+    const account = computed(() => {
+      return accountStore.account;
+    });
+
+    const wallet = computed(() => accountStore.wallet);
+
+    function setAccount() {
+      accountStore.setAccount();
+    }
+
+    return { account, wallet, setAccount };
   },
 };
 </script>

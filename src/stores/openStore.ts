@@ -1,16 +1,47 @@
+import { Network } from "@/enums/networks";
 import type { Account } from "@/lib/account";
-import { createNewWallet } from "@/lib/wallet";
+import {
+  CardanoWallet,
+  createNewWallet,
+  updateExistingWallet,
+} from "@/lib/wallet";
+import { useTransactionsStore } from "@/pages/Transaction/store";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 export const useAccountStore = defineStore("accountStore", () => {
   const account = ref<Account>();
   const wallet = ref<{ mnemonic: string }>({ mnemonic: "" });
 
   async function setAccount() {
-    const newWallet = await createNewWallet("cardano_testnet");
-    wallet.value.mnemonic = newWallet.mnemonic;
-    account.value = newWallet.accounts[0];
+    const currentNetwork = computed(
+      () => useTransactionsStore().currentNetwork,
+    );
+
+    const newWallet = ref<CardanoWallet>(
+      await createNewWallet(
+        currentNetwork.value == Network.MAINNET ? "cardano" : "cardano_testnet",
+      ),
+    );
+
+    watch(currentNetwork, async () => {
+      newWallet.value = await updateExistingWallet({
+        currencyId:
+          currentNetwork.value == Network.MAINNET
+            ? "cardano"
+            : "cardano_testnet",
+        mnemonic: wallet.value.mnemonic,
+      });
+    });
+
+    watch(
+      newWallet,
+      () => {
+        wallet.value.mnemonic = newWallet.value.mnemonic;
+        account.value = newWallet.value.accounts[0] as Account;
+      },
+      { immediate: true },
+    );
   }
 
   return {
