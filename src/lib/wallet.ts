@@ -45,6 +45,19 @@ export async function createNewWallet(
   return new CardanoWallet(walletSecret, currencyId, mnemonic);
 }
 
+export async function updateExistingWallet({
+  currencyId,
+  mnemonic,
+}: {
+  currencyId: CryptoCurrencyId;
+  mnemonic: string;
+}): Promise<CardanoWallet> {
+  const walletSecret = await Bip32PrivateKey.fromEntropy(
+    Buffer.from(bip39.mnemonicToEntropy(mnemonic), "hex"),
+  );
+  return new CardanoWallet(walletSecret, currencyId, mnemonic);
+}
+
 export function createWitnesses({
   requiredSigners,
   account,
