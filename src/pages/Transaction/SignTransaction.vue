@@ -42,9 +42,10 @@
           </div>
         </div>
 
+        <div v-if="!inputs.length">----</div>
         <div
           v-for="(input, index) in inputs"
-          :key="input.id"
+          :key="index"
           class="cardWhite flex flex-col gap-y-4"
         >
           <div class="headingBadge">
@@ -81,8 +82,8 @@
               class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
             >
               <TokenBadge
-                v-for="token in input.tokens"
-                :key="token.id"
+                v-for="(token, index) in input.tokens"
+                :key="index"
                 :policyId="token.policyId"
                 :assetName="token.assetName"
                 :amount="token.amount"
@@ -101,10 +102,10 @@
             <span class="textColor1 text-sm font-medium">OUTPUTS</span>
           </div>
         </div>
-
+        <div v-if="!outputs.length">----</div>
         <div
           v-for="(output, index) in outputs"
-          :key="output.id"
+          :key="index"
           class="cardWhite flex flex-col gap-y-4"
         >
           <div class="headingBadge">
@@ -134,8 +135,8 @@
               class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
             >
               <TokenBadge
-                v-for="token in output.tokens"
-                :key="token.id"
+                v-for="(token, index) in output.tokens"
+                :key="index"
                 :policyId="token.policyId"
                 :assetName="token.assetName"
                 :amount="token.amount"
@@ -282,6 +283,8 @@ import DialogBox from "@/components/dialog/dialog.vue";
 import Check from "@/assets/icons/check.vue";
 import { Network } from "@/enums/networks";
 import { useRouter } from "vue-router";
+import { convertLovelaceToADA } from "@/utils/utils";
+import type { Token } from "@stricahq/typhonjs/dist/types";
 export default defineComponent({
   components: { CopyButton, TokenBadge, AppButton, DialogBox, Check },
   setup() {
@@ -301,8 +304,40 @@ export default defineComponent({
 
     const transactionFee = computed(() => trxStore.fee);
 
-    const inputs = computed(() => trxStore.inputTrxItems);
-    const outputs = computed(() => trxStore.outputTrxItems);
+    const inputs = computed(() => {
+      const inputs = trxStore.transaction.getInputs();
+
+      return inputs.map((input) => {
+        return {
+          txId: input.txId,
+          address: input.address.getBech32(),
+          amount: convertLovelaceToADA(input.amount),
+          tokens: formatToken(input.tokens),
+        };
+      });
+    });
+
+    const outputs = computed(() => {
+      const outputs = trxStore.transaction.getOutputs();
+
+      return outputs.map((output) => {
+        return {
+          address: output.address.getBech32(),
+          amount: convertLovelaceToADA(output.amount),
+          tokens: formatToken(output.tokens),
+        };
+      });
+    });
+
+    function formatToken(tokens: Token[]) {
+      return tokens.map((token) => {
+        return {
+          policyId: token.policyId,
+          assetName: token.assetName,
+          amount: token.amount.toString(),
+        };
+      });
+    }
     const signatures = computed(() => trxStore.witnesses);
 
     const privateKeyId = ref<number>(0);
