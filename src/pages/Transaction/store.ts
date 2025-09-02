@@ -1,9 +1,17 @@
-import type { InputTrxItem, OutputTrxItem } from "@/types/transactions";
+import {
+  type CertificateTrxItem,
+  type InputTrxItem,
+  type OutputTrxItem,
+} from "@/types/transactions";
 import { Transaction } from "@stricahq/typhonjs";
-import type {
-  LanguageView,
-  ShelleyAddress,
-  VKeyWitness,
+import {
+  CertificateType,
+  type BipPath,
+  type LanguageView,
+  type ShelleyAddress,
+  type StakeDelegationCertificate,
+  type StakeKeyRegistrationCertificate,
+  type VKeyWitness,
 } from "@stricahq/typhonjs/dist/types";
 import { utils as TyphonUtils } from "@stricahq/typhonjs";
 import { defineStore } from "pinia";
@@ -15,6 +23,7 @@ import { Network } from "@/enums/networks";
 
 import { convertADAToLovelace, convertLovelaceToADA } from "@/utils/utils";
 import { useAccountStore } from "@/stores/openStore";
+import type { RewardAddress } from "@stricahq/typhonjs/dist/address";
 
 export const useTransactionsStore = defineStore("transactionsStore", () => {
   const currentNetwork = ref(localStorage.getItem("cardanoLabSelectedNetwork"));
@@ -256,6 +265,52 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     }
   }
 
+  //certificate
+
+  const allowedCertificateType = {
+    STAKE_KEY_REGISTRATION: CertificateType.STAKE_KEY_REGISTRATION,
+    STAKE_DELEGATION: CertificateType.STAKE_DELEGATION,
+  };
+
+  const certificateTrxId = ref<number>(0);
+
+  const certificateTrxItems = ref<Array<CertificateTrxItem>>([]);
+
+  function addCertificateTrx(type = CertificateType.STAKE_KEY_REGISTRATION) {
+    const stakeAddress = useAccountStore().account?.getStakeAddress();
+    certificateTrxItems.value.push({
+      id: certificateTrxId.value++,
+      address: stakeAddress?.address as RewardAddress,
+      stakePath: stakeAddress?.stakePath as BipPath,
+      deposit:
+        type === CertificateType.STAKE_KEY_REGISTRATION
+          ? protocolParams.stakeKeyDeposit.toString()
+          : "",
+      poolHash: "",
+      certificateType: type,
+    });
+  }
+
+  function getCertificateTrxById(id: number) {
+    return certificateTrxItems.value.find((trx) => trx.id === id);
+  }
+
+  function setCertificateFields(
+    id: number,
+    inputField: "poolHash",
+    value: string,
+  ) {
+    const trx = getCertificateTrxById(id);
+    if (!trx) return;
+    trx[inputField] = value;
+  }
+
+  function deleteCertificateTrx(id: number) {
+    certificateTrxItems.value = certificateTrxItems.value.filter(
+      (cert) => cert.id !== id,
+    );
+  }
+
   const fee = ref("");
 
   function buildTransaction() {
@@ -300,6 +355,38 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
           address: TyphonUtils.getAddressFromString(trx.address),
           tokens: tokens,
         });
+      });
+
+      //add Certificates to the transaction
+      certificateTrxItems.value.map((trx) => {
+        if (trx.certificateType == CertificateType.STAKE_KEY_REGISTRATION) {
+          const stakeKeyRegistration: StakeKeyRegistrationCertificate = {
+            type: CertificateType.STAKE_KEY_REGISTRATION,
+            cert: {
+              stakeCredential: {
+                bipPath: trx.stakePath,
+                hash: trx.address.stakeCredential.hash,
+                type: trx.address.stakeCredential.type,
+              },
+              deposit: BigNumber(trx.deposit),
+            },
+          };
+
+          transaction.value.addCertificate(stakeKeyRegistration);
+        } else if (trx.certificateType == CertificateType.STAKE_DELEGATION) {
+          const stakePoolDelegation: StakeDelegationCertificate = {
+            type: CertificateType.STAKE_DELEGATION,
+            cert: {
+              stakeCredential: {
+                bipPath: trx.stakePath,
+                hash: trx.address.stakeCredential.hash,
+                type: trx.address.stakeCredential.type,
+              },
+              poolHash: trx.poolHash,
+            },
+          };
+          transaction.value.addCertificate(stakePoolDelegation);
+        }
       });
 
       //prepare transaction
@@ -391,6 +478,13 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     deleteOutputTrxToken,
     clearOutputTrxItem,
     deleteOutputTrx,
+    //certificate
+    allowedCertificateType,
+    certificateTrxItems,
+    addCertificateTrx,
+    getCertificateTrxById,
+    setCertificateFields,
+    deleteCertificateTrx,
 
     fee,
     buildTransaction,

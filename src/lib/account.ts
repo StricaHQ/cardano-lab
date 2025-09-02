@@ -71,7 +71,7 @@ export class Account {
 
     const address = getRewardAddress(this.xpub, this.currencyId, stakePath);
 
-    return { bech32: address.getBech32() };
+    return { address, stakePath };
   }
 
   private getPrivateKeyByPath(path: BipPath) {

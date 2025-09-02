@@ -56,10 +56,12 @@
               class="w-full border borderColor rounded-sm py-3 px-8 flex gap-x-8 justify-between items-center"
             >
               <span class="text-sm textColor1 break-all">
-                {{ account.getStakeAddress().bech32 }}
+                {{ account.getStakeAddress().address.getBech32() }}
               </span>
 
-              <CopyButton :content="account.getStakeAddress().bech32" />
+              <CopyButton
+                :content="account.getStakeAddress().address.getBech32()"
+              />
             </div>
           </div>
         </div>
