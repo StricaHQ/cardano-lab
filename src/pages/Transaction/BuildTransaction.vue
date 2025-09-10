@@ -25,10 +25,7 @@
             :trxCount="index + 1"
             :trxItemId="item.id"
           />
-          <AppButton
-            @onClick="addInputTransaction"
-            btnClass="bg-secondary max-w-max"
-          >
+          <AppButton @onClick="addInputTrx" btnClass="bg-secondary max-w-max">
             <span class="text-white text-xs">Add Input</span></AppButton
           >
         </div>
@@ -48,12 +45,54 @@
             :trxCount="index + 1"
             :trxItemId="item.id"
           />
-          <AppButton
-            @onClick="addOutputTransaction"
-            btnClass="bg-secondary max-w-max"
-          >
+          <AppButton @onClick="addOutputTrx" btnClass="bg-secondary max-w-max">
             <span class="text-white text-xs">Add Output</span></AppButton
           >
+        </div>
+      </div>
+      <div class="w-full card1 flex flex-col gap-y-2">
+        <div class="flex items-center gap-x-2">
+          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
+          <div>
+            <span class="textColor1 text-sm font-medium">CERTIFICATE</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-y-4">
+          <CertificateForm
+            ref="certificateForm"
+            v-for="(item, index) in certificateTrxForm"
+            :key="item.id"
+            :trxCount="index + 1"
+            :trxItemId="item.id"
+          />
+          <div>
+            <div class="max-w-80 w-full relative" ref="certificatesDropdownRef">
+              <AppButton
+                btnClass="bg-secondary max-w-max text-white text-xs gap-4 "
+                :isDisabled="!isAccountAvailable"
+                @click="openCertificatesDropdown"
+              >
+                <span class="">Add Certificate</span>
+                <ChevronDown
+                  class="size-3 duration-200"
+                  :class="isCertificatesDropdownOpen ? 'rotate-180 ' : ''"
+                />
+              </AppButton>
+              <div
+                v-if="isCertificatesDropdownOpen"
+                class="absolute top-9 right-0 bg-gray-100 border border-gray-200 rounded p-1 w-full shadow-lg"
+              >
+                <div
+                  v-for="type in allowedCertificateType"
+                  :key="type"
+                  class="p-2 hover:bg-gray-200 rounded text-sm capitalize cursor-pointer"
+                  @click.stop="updateCertificateType(type)"
+                >
+                  {{ getCertificateTypeInText(type) }}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -115,7 +154,13 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+import {
+  computed,
+  defineComponent,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 import InputForm from "./components/InputForm.vue";
 import AppButton from "@/components/buttons/AppButton.vue";
 import { useTransactionsStore } from "./store";
@@ -125,12 +170,26 @@ import { createWitnesses } from "@/lib/wallet";
 import { useRouter } from "vue-router";
 import { useAccountStore } from "@/stores/openStore";
 import type { Account } from "@/lib/account";
+import CertificateForm from "./components/certificateForm.vue";
+import ChevronDown from "@/assets/icons/chevronDown.vue";
+import { CertificateType } from "@stricahq/typhonjs/dist/types";
 
 export default defineComponent({
-  components: { InputForm, AppButton, OutputForm, CopyButton },
+  components: {
+    InputForm,
+    AppButton,
+    OutputForm,
+    CertificateForm,
+    CopyButton,
+    ChevronDown,
+  },
   setup() {
     const trxStore = useTransactionsStore();
     const router = useRouter();
+
+    const certificateTrxForm = computed(() => {
+      return trxStore.certificateTrxItems;
+    });
 
     const inputTrxForm = computed(() => {
       return trxStore.inputTrxItems;
@@ -140,21 +199,27 @@ export default defineComponent({
       return trxStore.outputTrxItems;
     });
 
-    function addInputTransaction() {
+    function addInputTrx() {
       trxStore.addInputTrx();
     }
 
-    function addOutputTransaction() {
+    function addOutputTrx() {
       trxStore.addOutputTrx();
+    }
+
+    function addCertificateTrx() {
+      trxStore.addCertificateTrx();
     }
 
     const outputForm = ref();
     const inputFrom = ref();
+    const certificateForm = ref([]);
 
     function buildTransaction() {
-      //if any of the fields from input or output forms invalid, restrict the build transaction
+      //if any of the fields from input, output or certificate forms invalid, restrict the build transaction
       let isInputFormsHaveValidData = true;
       let isOutputFormsHaveValidData = true;
+      let isCertificateFormsHaveValidData = true;
 
       inputFrom.value.forEach((form: any) => {
         isInputFormsHaveValidData = form.isFormValid();
@@ -164,7 +229,15 @@ export default defineComponent({
         isOutputFormsHaveValidData = form.isFormValid();
       });
 
-      if (isInputFormsHaveValidData && isOutputFormsHaveValidData) {
+      certificateForm.value.forEach((form: any) => {
+        isCertificateFormsHaveValidData = form.isFormValid();
+      });
+
+      if (
+        isInputFormsHaveValidData &&
+        isOutputFormsHaveValidData &&
+        isCertificateFormsHaveValidData
+      ) {
         trxStore.buildTransaction();
       }
     }
@@ -195,11 +268,61 @@ export default defineComponent({
 
       router.push("/transaction/signTransaction");
     };
+
+    const isCertificatesDropdownOpen = ref(false);
+    const certificatesDropdownRef = ref();
+
+    const selectedCertificateType = ref<CertificateType>(
+      CertificateType.STAKE_KEY_REGISTRATION,
+    );
+
+    const updateCertificateType = (type: CertificateType) => {
+      trxStore.addCertificateTrx(type);
+      closeCertificatesDropdown();
+    };
+
+    const openCertificatesDropdown = () => {
+      isCertificatesDropdownOpen.value = true;
+    };
+
+    const closeCertificatesDropdown = () => {
+      isCertificatesDropdownOpen.value = false;
+    };
+
+    function onClickOutside(event: MouseEvent) {
+      if (
+        isCertificatesDropdownOpen.value &&
+        certificatesDropdownRef.value &&
+        !certificatesDropdownRef.value.contains(event.target as Node)
+      ) {
+        closeCertificatesDropdown();
+      }
+    }
+
+    function getCertificateTypeInText(type: CertificateType) {
+      switch (type) {
+        case CertificateType.STAKE_KEY_REGISTRATION:
+          return "Stake Key Registration";
+        case CertificateType.STAKE_DELEGATION:
+          return "Stake Pool Delegation";
+        default:
+          return type;
+      }
+    }
+
+    onMounted(() => {
+      document.addEventListener("click", onClickOutside);
+    });
+
+    onBeforeUnmount(() => {
+      document.removeEventListener("click", onClickOutside);
+    });
+
     return {
       inputTrxForm,
-      addInputTransaction,
+      addInputTrx,
       outputTrxForm,
-      addOutputTransaction,
+      addOutputTrx,
       fee,
       buildTransaction,
       transactionResponse,
@@ -207,6 +330,20 @@ export default defineComponent({
       inputFrom,
       signTransaction,
       isAccountAvailable,
+
+      //certificate
+      certificateTrxForm,
+      addCertificateTrx,
+      certificateForm,
+      CertificateType,
+      isCertificatesDropdownOpen,
+      selectedCertificateType,
+      certificatesDropdownRef,
+      updateCertificateType,
+      openCertificatesDropdown,
+      closeCertificatesDropdown,
+      getCertificateTypeInText,
+      allowedCertificateType: trxStore.allowedCertificateType,
     };
   },
 });

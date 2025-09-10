@@ -1,3 +1,6 @@
+import type { RewardAddress } from "@stricahq/typhonjs/dist/address";
+import type { BipPath, CertificateType } from "@stricahq/typhonjs/dist/types";
+
 export type Token = {
   id: number;
   policyId: string;
@@ -19,4 +22,13 @@ export type OutputTrxItem = {
   address: string;
   amount: string;
   tokens: Array<Token>;
+};
+
+export type CertificateTrxItem = {
+  id: number;
+  poolHash: string;
+  deposit: string;
+  address: RewardAddress;
+  stakePath: BipPath;
+  certificateType: CertificateType;
 };
