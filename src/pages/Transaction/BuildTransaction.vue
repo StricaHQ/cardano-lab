@@ -137,18 +137,24 @@
         </div>
       </div>
     </div>
-
-    <AppButton
+    <div
       v-if="
         transactionResponse.transactionHash ||
         transactionResponse.unsignedTransaction
       "
-      size="lg"
-      btnClass="bgGradient max-w-max"
-      @onClick="signTransaction"
+      class="flex gap-4"
     >
-      <span class="text-sm text-white">Sign Transaction</span>
-    </AppButton>
+      <AppButton
+        size="lg"
+        btnClass="bgGradient max-w-max"
+        @onClick="signTransaction"
+      >
+        <span class="text-sm text-white">Sign Transaction</span>
+      </AppButton>
+      <AppButton size="lg" btnClass="bgGradient max-w-max" @onClick="viewCBOR">
+        <span class="text-sm text-white">View CBOR</span>
+      </AppButton>
+    </div>
   </div>
 </template>
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
@@ -252,6 +258,11 @@ export default defineComponent({
       accountStore.account?.xpub ? true : false,
     );
     const signTransaction = () => {
+      createCBOR();
+      router.push("/transaction/signTransaction");
+    };
+
+    function createCBOR() {
       const requiredSigners = trxStore.transaction.getRequiredWitnesses();
       const account = accountStore.account;
 
@@ -265,9 +276,7 @@ export default defineComponent({
 
       trxStore.signedTransactionCBOR =
         trxStore.transaction.buildTransaction().payload;
-
-      router.push("/transaction/signTransaction");
-    };
+    }
 
     const isCertificatesDropdownOpen = ref(false);
     const certificatesDropdownRef = ref();
@@ -310,6 +319,11 @@ export default defineComponent({
       }
     }
 
+    function viewCBOR() {
+      createCBOR();
+      router.push("/cbor/cborView");
+    }
+
     onMounted(() => {
       document.addEventListener("click", onClickOutside);
     });
@@ -344,6 +358,7 @@ export default defineComponent({
       closeCertificatesDropdown,
       getCertificateTypeInText,
       allowedCertificateType: trxStore.allowedCertificateType,
+      viewCBOR,
     };
   },
 });

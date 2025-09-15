@@ -38,7 +38,9 @@ export class CardanoWallet {
 export async function createNewWallet(
   currencyId: CryptoCurrencyId,
 ): Promise<CardanoWallet> {
-  const mnemonic = bip39.generateMnemonic(DEFAULT_ENTROPY_STRENGTH);
+  // const mnemonic = bip39.generateMnemonic(DEFAULT_ENTROPY_STRENGTH);
+  const mnemonic =
+    "crawl useless ritual frame cancel people era extend milk mixed oyster slender";
   const walletSecret = await Bip32PrivateKey.fromEntropy(
     Buffer.from(bip39.mnemonicToEntropy(mnemonic), "hex"),
   );

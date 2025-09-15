@@ -10,11 +10,10 @@
       <div class="hidden md:block col-span-3">
         <nav class="flex justify-center gap-x-10 text-sm">
           <RouterLink
-            :to="item.link === '/cbor' ? '' : item.link"
+            :to="item.link"
             v-for="item in menuItems"
             class="relative"
             :key="item.name"
-            :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
           >
             <span
               :class="
@@ -66,11 +65,10 @@
 
               <div class="flex flex-col items-start gap-y-0.5 text-sm w-full">
                 <RouterLink
-                  :to="item.link === '/cbor' ? '' : item.link"
+                  :to="item.link"
                   v-for="item in menuItems"
                   :key="item.name"
                   class="w-full px-5 flex items-start py-2 hover:bg-blue-50 hover:text-primary"
-                  :class="item.link === '/cbor' ? 'pointer-events-none' : ''"
                 >
                   {{ item.name }}</RouterLink
                 >
