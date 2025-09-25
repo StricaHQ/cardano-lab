@@ -1,0 +1,108 @@
+@import url("./fonts/poppins.css");
+@import url("./fonts/recursive.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+.scroll-container {
+  overflow: auto;
+  max-height: 100vh;
+  scroll-behavior: smooth;
+
+  scrollbar-gutter: stable;
+}
+::-webkit-scrollbar {
+  @apply bg-slate-300;
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb:vertical {
+  @apply bg-gray-600;
+  -webkit-border-radius: 100px;
+  background-clip: padding-box;
+  border: 2px solid rgba(0, 0, 0, 0);
+}
+
+::-webkit-scrollbar-thumb:vertical:active {
+  @apply bg-gray-600;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+body {
+  @apply font-Poppins scroll-container;
+}
+
+.bgGradient {
+  @apply bg-gradient-to-br from-[#013499] to-[#012366];
+}
+
+.textColor {
+  @apply text-textColor;
+}
+
+.textColor1 {
+  @apply text-textColor-1;
+}
+
+.textColor2 {
+  @apply text-textColor-2;
+}
+
+/* border */
+.borderColor {
+  @apply border-borderColor;
+}
+.borderBgColor {
+  @apply bg-borderColor;
+}
+
+/* cardBg */
+.cardBackgroundColor1 {
+  @apply bg-cardBackgroundColor;
+}
+.card1 {
+  @apply cardBackgroundColor1 border border-gray-200 rounded-sm p-4;
+}
+.cardWhite {
+  @apply bg-white border border-gray-100 rounded-sm p-4;
+}
+
+/* input */
+.inputFieldBg {
+  @apply bg-inputField;
+}
+.inputLabel {
+  @apply text-xs textColor2 pl-2;
+}
+.inputField {
+  @apply h-10 px-4 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
+}
+
+.inputField-2 {
+  @apply h-8 px-4 textColor placeholder:text-xs placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
+}
+
+.textarea {
+  @apply px-4 py-2 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
+}
+
+/* badge ui */
+.headingBadge {
+  @apply bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center text-primary text-xs font-medium;
+}
+
+/* error message */
+.errorMessage {
+  @apply h-2 text-xs text-red-500 leading-none pl-2;
+}

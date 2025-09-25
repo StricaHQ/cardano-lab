@@ -4,10 +4,14 @@ import {
   type BipPath,
   type CryptoCurrencyId,
 } from "./types/types";
-import { getBaseAddress, getBipPath } from "./helpers/helpers";
+import {
+  getBaseAddress,
+  getRewardAddress,
+  getBipPath,
+} from "./helpers/helpers";
 
 export class Account {
-  private secret: Bip32PrivateKey;
+  secret: Bip32PrivateKey;
   xpub: Bip32PublicKey;
   index: number;
   currencyId: CryptoCurrencyId;
@@ -56,6 +60,18 @@ export class Account {
         privKeyHex: stakePrivateKey.toBytes().toString("hex"),
       },
     };
+  }
+
+  getStakeAddress() {
+    const stakePath = getBipPath({
+      account: this.index,
+      chain: DerivationChain.stakingKey,
+      index: 0,
+    });
+
+    const address = getRewardAddress(this.xpub, this.currencyId, stakePath);
+
+    return { address, stakePath };
   }
 
   private getPrivateKeyByPath(path: BipPath) {

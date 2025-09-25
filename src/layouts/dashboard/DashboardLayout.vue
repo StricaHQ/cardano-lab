@@ -1,15 +1,15 @@
 <template>
   <div class="min-h-screen flex flex-col">
-    <app-header />
-    <app-sub-header />
+    <AppHeader />
+    <AppSubHeader />
     <div class="flex justify-center grow h-full">
       <div class="w-full max-w-[1024px] px-5">
-        <div class="mt-16 mb-12">
+        <div class="my-16">
           <router-view />
         </div>
       </div>
     </div>
-    <app-footer />
+    <AppFooter />
   </div>
 </template>
 
