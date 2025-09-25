@@ -32,3 +32,15 @@ export type CertificateTrxItem = {
   stakePath: BipPath;
   certificateType: CertificateType;
 };
+
+export type MintTrxItem = {
+  id: number;
+  policyScript: string;
+  assets: Array<Asset>;
+};
+
+export declare type Asset = {
+  id: number;
+  assetName: string;
+  amount: string;
+};

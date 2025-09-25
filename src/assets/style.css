@@ -93,6 +93,10 @@ body {
   @apply h-8 px-4 textColor placeholder:text-xs placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
 }
 
+.textarea {
+  @apply px-4 py-2 textColor placeholder:text-[12px] placeholder:text-gray-400 focus:outline-none inputFieldBg border border-gray-100 focus:border-gray-300  rounded-md w-full  text-sm;
+}
+
 /* badge ui */
 .headingBadge {
   @apply bg-secondary/[0.1] max-w-max h-7 px-2 rounded-md flex justify-center items-center text-primary text-xs font-medium;

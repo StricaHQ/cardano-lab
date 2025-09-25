@@ -1143,7 +1143,7 @@ __metadata:
   resolution: "@stricahq/cardano-lab@workspace:."
   dependencies:
     "@stricahq/bip32ed25519": "npm:^1.1.0"
-    "@stricahq/typhonjs": "npm:3.0.0"
+    "@stricahq/typhonjs": "npm:^3.0.1"
     "@tsconfig/node22": "npm:^22.0.0"
     "@types/jsdom": "npm:^21.1.7"
     "@types/node": "npm:^22.9.3"
@@ -1190,9 +1190,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stricahq/typhonjs@npm:3.0.0":
-  version: 3.0.0
-  resolution: "@stricahq/typhonjs@npm:3.0.0"
+"@stricahq/typhonjs@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@stricahq/typhonjs@npm:3.0.1"
   dependencies:
     "@stricahq/cbors": "npm:1.0.2"
     bech32: "npm:^2.0.0"
@@ -1201,7 +1201,7 @@ __metadata:
     bs58: "npm:^5.0.0"
     buffer: "npm:^6.0.3"
     lodash: "npm:^4.17.21"
-  checksum: 10c0/7595c003dcd8d6dec9b656b33d94c1698397081d4d84be24198cac71cadb146570eca292363426a0615ad8779faea358c5ad3d488ae5f5ea731ef9fd751bb5bc
+  checksum: 10c0/2f95fe552835261998721e38192d1e3f332cc26ec6dc1eced7a5bb9093e5313f39119b4a8a4fa6de1c8041121485bc6eec05696e78ffb2f8cb7028eb9c124ed7
   languageName: node
   linkType: hard
 
