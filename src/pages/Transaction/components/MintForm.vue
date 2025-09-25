@@ -1,7 +1,7 @@
 <template>
   <div class="cardWhite flex flex-col gap-y-4">
     <div class="headingBadge">
-      <span> Mint #{{ trxCount }}</span>
+      <span> Mint #{{ mintCount }}</span>
     </div>
     <div class="flex flex-col gap-y-3">
       <div class="flex flex-col gap-y-3 md:flex-row gap-x-4 w-full">
@@ -131,7 +131,7 @@ export default {
     AssetBadge,
   },
   props: {
-    trxCount: { type: Number, required: true },
+    mintCount: { type: Number, required: true },
     mintId: { type: Number, required: true },
   },
   setup(props) {
@@ -189,7 +189,7 @@ export default {
 
     function openAddAssetDialog() {
       if (!assets.value?.length)
-        trxStore.addAssetsToMintTrx({ trxId: props.mintId });
+        trxStore.addAssetsToMintTrx({ mintId: props.mintId });
       showAddAssetDialog.value = true;
     }
 
@@ -207,7 +207,7 @@ export default {
     }
 
     function deleteAsset(id: number) {
-      trxStore.deleteMintTrxAsset({ trxId: props.mintId, assetId: id });
+      trxStore.deleteMintTrxAsset({ mintId: props.mintId, assetId: id });
     }
 
     function clearTrxItem() {
@@ -242,7 +242,7 @@ export default {
     }
 
     function addAsset() {
-      trxStore.addAssetsToMintTrx({ trxId: props.mintId });
+      trxStore.addAssetsToMintTrx({ mintId: props.mintId });
     }
 
     return {

@@ -111,7 +111,7 @@ export default defineComponent({
 
     function deleteAsset() {
       trxStore.deleteMintTrxAsset({
-        trxId: props.mintId,
+        mintId: props.mintId,
         assetId: props.asset.id,
       });
     }

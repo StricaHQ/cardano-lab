@@ -327,8 +327,8 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     });
   }
 
-  function getMintTrxById(trxId: number) {
-    return mintTrxItems.value.find((item) => item.id === trxId);
+  function getMintTrxById(mintId: number) {
+    return mintTrxItems.value.find((item) => item.id === mintId);
   }
 
   function setMintTrxFields(
@@ -341,8 +341,8 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     trx[mintField] = value;
   }
 
-  function addAssetsToMintTrx({ trxId }: { trxId: number }) {
-    const trx = getMintTrxById(trxId);
+  function addAssetsToMintTrx({ mintId }: { mintId: number }) {
+    const trx = getMintTrxById(mintId);
     if (!trx) return;
     trx.assets.push({
       id: mintAssetId.value++,
@@ -376,17 +376,17 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
   }
 
   function deleteMintTrxAsset({
-    trxId,
+    mintId,
     assetId,
   }: {
-    trxId: number;
+    mintId: number;
     assetId: number;
   }) {
-    const trx = getMintTrxById(trxId);
+    const trx = getMintTrxById(mintId);
     if (trx) {
       trx.assets = trx.assets.filter((item) => item.id !== assetId);
     }
-    if (!trx?.assets.length) addAssetsToMintTrx({ trxId });
+    if (!trx?.assets.length) addAssetsToMintTrx({ mintId });
   }
 
   function clearMintTrxItem(trxId: number) {
@@ -397,8 +397,10 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     }
   }
 
-  function deleteMintTrx(trxId: number) {
-    mintTrxItems.value = mintTrxItems.value.filter((item) => item.id !== trxId);
+  function deleteMintTrx(mintId: number) {
+    mintTrxItems.value = mintTrxItems.value.filter(
+      (item) => item.id !== mintId,
+    );
   }
 
   //

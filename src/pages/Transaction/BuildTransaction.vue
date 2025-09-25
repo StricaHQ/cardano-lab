@@ -62,7 +62,7 @@
             ref="mintForm"
             v-for="(item, index) in mintTrxForm"
             :key="item.id"
-            :trxCount="index + 1"
+            :mintCount="index + 1"
             :mintId="item.id"
           />
           <AppButton @onClick="addMintTrx" btnClass="bg-secondary max-w-max">
