@@ -10,6 +10,25 @@ export const getAccountCredentialMetaByKey = (payload: {
   const { accountXPub, addressCount, accountIndex } = payload;
   const accountCredentialsByKey: Record<string, AccountCredential> = {};
 
+  // stake credential
+  const stakeHash = accountXPub
+    .derive(DerivationChain.stakingKey)
+    .derive(0)
+    .toPublicKey()
+    .hash()
+    .toString("hex");
+  accountCredentialsByKey[stakeHash] = {
+    hash: stakeHash,
+    type: "ADDRESS",
+    path: {
+      purpose: 1852,
+      coin: 1815,
+      account: accountIndex,
+      chain: DerivationChain.stakingKey,
+      index: 0,
+    },
+  };
+
   for (let index = 0; index < addressCount; index++) {
     const internalHash = accountXPub
       .derive(DerivationChain.internalKey)
