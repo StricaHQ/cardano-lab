@@ -491,12 +491,13 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
             amount: BigNumber(asset.amount),
           };
         });
-        const policyId = NativeScriptFactory.fromCliJSON(
+        const nativeScript = NativeScriptFactory.fromCliJSON(
           JSON.parse(trx.policyScript),
-        ).policyId();
+        );
 
         transaction.value.addMint({
-          policyId: policyId.toString("hex"),
+          nativeScript: nativeScript.json(),
+          policyId: nativeScript.policyId().toString("hex"),
           assets: assets.filter((asset) => asset.assetName != ""),
         });
       });
