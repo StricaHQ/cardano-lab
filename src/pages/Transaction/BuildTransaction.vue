@@ -242,7 +242,7 @@ export default defineComponent({
     const outputForm = ref();
     const inputFrom = ref();
     const certificateForm = ref([]);
-    const mintForm = ref();
+    const mintForm = ref([]);
 
     function buildTransaction() {
       //if any of the fields from input, output or certificate forms invalid, restrict the build transaction
