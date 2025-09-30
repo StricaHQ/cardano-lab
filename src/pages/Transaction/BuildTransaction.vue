@@ -54,6 +54,26 @@
         <div class="flex items-center gap-x-2">
           <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
+            <span class="textColor1 text-sm font-medium">MINTS</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-y-4">
+          <MintForm
+            ref="mintForm"
+            v-for="(item, index) in mintTrxForm"
+            :key="item.id"
+            :mintCount="index + 1"
+            :mintId="item.id"
+          />
+          <AppButton @onClick="addMintTrx" btnClass="bg-secondary max-w-max">
+            <span class="text-white text-xs">Add Mint</span></AppButton
+          >
+        </div>
+      </div>
+      <div class="w-full card1 flex flex-col gap-y-2">
+        <div class="flex items-center gap-x-2">
+          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
+          <div>
             <span class="textColor1 text-sm font-medium">CERTIFICATE</span>
           </div>
         </div>
@@ -179,12 +199,14 @@ import type { Account } from "@/lib/account";
 import CertificateForm from "./components/certificateForm.vue";
 import ChevronDown from "@/assets/icons/chevronDown.vue";
 import { CertificateType } from "@stricahq/typhonjs/dist/types";
+import MintForm from "./components/MintForm.vue";
 
 export default defineComponent({
   components: {
     InputForm,
     AppButton,
     OutputForm,
+    MintForm,
     CertificateForm,
     CopyButton,
     ChevronDown,
@@ -205,6 +227,8 @@ export default defineComponent({
       return trxStore.outputTrxItems;
     });
 
+    const mintTrxForm = computed(() => trxStore.mintTrxItems);
+
     function addInputTrx() {
       trxStore.addInputTrx();
     }
@@ -217,32 +241,47 @@ export default defineComponent({
       trxStore.addCertificateTrx();
     }
 
+    function addMintTrx() {
+      trxStore.addMintTrx();
+    }
+
     const outputForm = ref();
     const inputFrom = ref();
     const certificateForm = ref([]);
+    const mintForm = ref([]);
 
     function buildTransaction() {
       //if any of the fields from input, output or certificate forms invalid, restrict the build transaction
       let isInputFormsHaveValidData = true;
       let isOutputFormsHaveValidData = true;
       let isCertificateFormsHaveValidData = true;
+      let isMintFormsHaveValidData = true;
 
       inputFrom.value.forEach((form: any) => {
-        isInputFormsHaveValidData = form.isFormValid();
+        if (!form.isFormValid() && isInputFormsHaveValidData)
+          isInputFormsHaveValidData = false;
       });
 
       outputForm.value.forEach((form: any) => {
-        isOutputFormsHaveValidData = form.isFormValid();
+        if (!form.isFormValid() && isOutputFormsHaveValidData)
+          isOutputFormsHaveValidData = false;
       });
 
       certificateForm.value.forEach((form: any) => {
-        isCertificateFormsHaveValidData = form.isFormValid();
+        if (!form.isFormValid() && isCertificateFormsHaveValidData)
+          isCertificateFormsHaveValidData = false;
+      });
+
+      mintForm.value.forEach((form: any) => {
+        if (!form.isFormValid() && isMintFormsHaveValidData)
+          isMintFormsHaveValidData = form.isFormValid();
       });
 
       if (
         isInputFormsHaveValidData &&
         isOutputFormsHaveValidData &&
-        isCertificateFormsHaveValidData
+        isCertificateFormsHaveValidData &&
+        isMintFormsHaveValidData
       ) {
         trxStore.buildTransaction();
       }
@@ -344,6 +383,10 @@ export default defineComponent({
       inputFrom,
       signTransaction,
       isAccountAvailable,
+
+      mintForm,
+      mintTrxForm,
+      addMintTrx,
 
       //certificate
       certificateTrxForm,

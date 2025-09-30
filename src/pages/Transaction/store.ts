@@ -1,9 +1,10 @@
 import {
   type CertificateTrxItem,
   type InputTrxItem,
+  type MintTrxItem,
   type OutputTrxItem,
 } from "@/types/transactions";
-import { Transaction } from "@stricahq/typhonjs";
+import { NativeScriptFactory, Transaction } from "@stricahq/typhonjs";
 import {
   CertificateType,
   type BipPath,
@@ -311,6 +312,99 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     );
   }
 
+  //mint
+
+  const mintTransactionId = ref<number>(0);
+  const mintAssetId = ref<number>(0);
+
+  const mintTrxItems = ref<Array<MintTrxItem>>([]);
+
+  function addMintTrx() {
+    mintTrxItems.value.push({
+      id: mintTransactionId.value++,
+      policyScript: "",
+      assets: [],
+    });
+  }
+
+  function getMintTrxById(mintId: number) {
+    return mintTrxItems.value.find((item) => item.id === mintId);
+  }
+
+  function setMintTrxFields(
+    id: number,
+    mintField: "policyScript",
+    value: string,
+  ) {
+    const trx = getMintTrxById(id);
+    if (!trx) return;
+    trx[mintField] = value;
+  }
+
+  function addAssetsToMintTrx({ mintId }: { mintId: number }) {
+    const trx = getMintTrxById(mintId);
+    if (!trx) return;
+    trx.assets.push({
+      id: mintAssetId.value++,
+      amount: "",
+      assetName: "",
+    });
+  }
+
+  function getMintAssetById(mintTrx: MintTrxItem, assetId: number) {
+    return mintTrx.assets.find((item) => item.id === assetId);
+  }
+
+  function updateMintAsset({
+    mintId,
+    assetId,
+    field,
+    value,
+  }: {
+    mintId: number;
+    assetId: number;
+    field: "assetName" | "amount";
+    value: string;
+  }) {
+    const trx = getMintTrxById(mintId);
+
+    if (!trx) return;
+    const asset = getMintAssetById(trx, assetId);
+    if (!asset) return;
+
+    asset[field] = value;
+  }
+
+  function deleteMintTrxAsset({
+    mintId,
+    assetId,
+  }: {
+    mintId: number;
+    assetId: number;
+  }) {
+    const trx = getMintTrxById(mintId);
+    if (trx) {
+      trx.assets = trx.assets.filter((item) => item.id !== assetId);
+    }
+    if (!trx?.assets.length) addAssetsToMintTrx({ mintId });
+  }
+
+  function clearMintTrxItem(trxId: number) {
+    const trx = getMintTrxById(trxId);
+    if (trx) {
+      trx.policyScript = "";
+      trx.assets = [];
+    }
+  }
+
+  function deleteMintTrx(mintId: number) {
+    mintTrxItems.value = mintTrxItems.value.filter(
+      (item) => item.id !== mintId,
+    );
+  }
+
+  //
+
   const fee = ref("");
 
   function buildTransaction() {
@@ -387,6 +481,25 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
           };
           transaction.value.addCertificate(stakePoolDelegation);
         }
+      });
+
+      //add mints
+      mintTrxItems.value.map((trx) => {
+        const assets = trx.assets.map((asset) => {
+          return {
+            assetName: asset.assetName,
+            amount: BigNumber(asset.amount),
+          };
+        });
+        const nativeScript = NativeScriptFactory.fromCliJSON(
+          JSON.parse(trx.policyScript),
+        );
+
+        transaction.value.addMint({
+          nativeScript: nativeScript.json(),
+          policyId: nativeScript.policyId().toString("hex"),
+          assets: assets.filter((asset) => asset.assetName != ""),
+        });
       });
 
       //prepare transaction
@@ -485,6 +598,16 @@ export const useTransactionsStore = defineStore("transactionsStore", () => {
     getCertificateTrxById,
     setCertificateFields,
     deleteCertificateTrx,
+    //mint
+    mintTrxItems,
+    addMintTrx,
+    getMintTrxById,
+    setMintTrxFields,
+    addAssetsToMintTrx,
+    updateMintAsset,
+    deleteMintTrxAsset,
+    clearMintTrxItem,
+    deleteMintTrx,
 
     fee,
     buildTransaction,

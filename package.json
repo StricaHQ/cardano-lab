@@ -17,7 +17,7 @@
   "dependencies": {
     "@stricahq/bip32ed25519": "^1.1.0",
     "@stricahq/cardano-codec": "^2.0.4",
-    "@stricahq/typhonjs": "^3.0.0",
+    "@stricahq/typhonjs": "^3.0.1",
     "axios": "^1.11.0",
     "bignumber.js": "^9.3.1",
     "bip39": "^3.1.0",
@@ -26,7 +26,7 @@
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "@stricahq/typhonjs": "3.0.0",
+    "@stricahq/typhonjs": "^3.0.1",
     "@tsconfig/node22": "^22.0.0",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.9.3",
