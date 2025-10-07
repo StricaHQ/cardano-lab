@@ -134,6 +134,52 @@
             </div>
           </div>
         </div>
+
+        <!-- mints -->
+        <div class="w-full card1 flex flex-col gap-y-2">
+          <div class="flex items-center gap-x-2">
+            <div class="w-2 h-2 rounded-full bg-gray-800"></div>
+            <div>
+              <span class="textColor1 text-sm font-medium">MINTS</span>
+            </div>
+          </div>
+          <div v-if="!mints">----</div>
+          <div
+            v-for="(mint, index) in mints"
+            :key="index"
+            class="cardWhite flex flex-col gap-y-4"
+          >
+            <div class="headingBadge">
+              <span>Mint #{{ index + 1 }}</span>
+            </div>
+
+            <div class="flex flex-col gap-y-0.5">
+              <span class="textColor2 text-xs">Policy ID</span>
+              <div class="w-full flex gap-x-4 items-center">
+                <span class="text-sm textColor1 break-all">
+                  {{ mint.policyId || "----" }}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-y-0.5">
+              <span class="textColor2 text-xs">Assets</span>
+              <div
+                v-if="mint.assets"
+                class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
+              >
+                <AssetBadge
+                  v-for="(asset, index) in mint.assets"
+                  :key="index"
+                  :assetName="asset.assetName"
+                  :amount="asset.amount"
+                />
+              </div>
+              <div v-else>----</div>
+            </div>
+          </div>
+        </div>
+
         <!-- certificate -->
         <div class="w-full card1 flex flex-col gap-y-2">
           <div class="flex items-center gap-x-2">
@@ -210,9 +256,11 @@ import BigNumber from "bignumber.js";
 import { getNetworkParameters } from "@/lib/helpers/networks";
 import { Network } from "@/enums/networks";
 import CopyButton from "@/components/buttons/CopyButton.vue";
+import TokenBadge from "@/components/TokenBadge.vue";
+import AssetBadge from "./Transaction/components/mintAssets/assetBadge.vue";
 
 export default defineComponent({
-  components: { CopyButton },
+  components: { CopyButton, TokenBadge, AssetBadge },
   setup() {
     const trxStore = useTransactionsStore();
 
@@ -257,6 +305,27 @@ export default defineComponent({
           tokens: formatToken(output.tokens),
         };
       });
+    });
+
+    const mints = computed(() => {
+      const list = transaction.value?.mint?.reduce(
+        (acc, item) => {
+          if (!acc[item.policyId]) {
+            acc[item.policyId] = [];
+          }
+          acc[item.policyId].push({
+            assetName: item.assetName,
+            amount: item.amount,
+          });
+          return acc;
+        },
+        {} as Record<string, { assetName: string; amount: string }[]>,
+      );
+
+      return Object.entries(list || {}).map(([policyId, assets]) => ({
+        policyId,
+        assets,
+      }));
     });
 
     const certificates = computed(() => {
@@ -314,6 +383,7 @@ export default defineComponent({
       cbor,
       outputs,
       inputs,
+      mints,
       certificates,
       transaction,
       cborErrorMessage,

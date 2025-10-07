@@ -115,7 +115,7 @@ export default defineComponent({
     const menuItems = ref<Array<{ name: string; link: string }>>([
       { name: "Account", link: "/account/createAccount" },
       { name: "Transaction", link: "/transaction/buildTransaction" },
-      { name: "Cbor View", link: "/cbor" },
+      { name: "Cbor View", link: "/cbor/cborView" },
     ]);
 
     const activeLink = ref<string>("/account/createAccount");
@@ -128,7 +128,7 @@ export default defineComponent({
       } else if (route.path.startsWith("/transaction")) {
         return "/transaction/buildTransaction";
       } else {
-        return "/cbor";
+        return "/cbo/cborView";
       }
     });
 

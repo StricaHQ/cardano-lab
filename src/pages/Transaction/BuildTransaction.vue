@@ -298,7 +298,9 @@ export default defineComponent({
     );
     const signTransaction = () => {
       createCBOR();
-      router.push("/transaction/signTransaction");
+      router.push("/transaction/signTransaction").then(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      });
     };
 
     function createCBOR() {
@@ -360,7 +362,9 @@ export default defineComponent({
 
     function viewCBOR() {
       createCBOR();
-      router.push("/cbor/cborView");
+      router.push("/cbor/cborView").then(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      });
     }
 
     onMounted(() => {
