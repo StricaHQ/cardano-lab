@@ -380,7 +380,10 @@ import DialogBox from "@/components/dialog/dialog.vue";
 import Check from "@/assets/icons/check.vue";
 import { Network } from "@/enums/networks";
 import { useRouter } from "vue-router";
-import { convertLovelaceToADA } from "@/utils/utils";
+import {
+  convertLovelaceToADA,
+  getCardanoScanTransactionURL,
+} from "@/utils/utils";
 import type { Token } from "@stricahq/typhonjs/dist/types";
 import {
   address as TyphonAddress,
@@ -405,12 +408,11 @@ export default defineComponent({
       () => trxStore.transactionResponse.transactionHash,
     );
 
-    const transactionHashLink = computed(
-      () =>
-        "https://" +
-        (trxStore.currentNetwork == Network.PREPROD ? "preprod." : "") +
-        "cardanoscan.io/transaction/" +
-        transactionHash.value,
+    const transactionHashLink = computed(() =>
+      getCardanoScanTransactionURL({
+        currentNetwork: trxStore.currentNetwork,
+        transactionId: transactionHash.value,
+      }),
     );
 
     const transactionFee = computed(() => trxStore.fee);
@@ -487,12 +489,17 @@ export default defineComponent({
             let deposit = 0;
             let certificateType = "";
 
-            if (certificate.type == 7) {
+            if (
+              certificate.type ==
+              TyphonTypes.CertificateType.STAKE_KEY_REGISTRATION
+            ) {
               deposit = convertLovelaceToADA(
                 certificate.cert.deposit,
               ).toNumber();
               certificateType = "Stake Key Registration";
-            } else if (certificate.type == 2) {
+            } else if (
+              certificate.type == TyphonTypes.CertificateType.STAKE_DELEGATION
+            ) {
               poolHash = certificate.cert.poolHash;
               certificateType = "Stake Pool Delegation";
             }

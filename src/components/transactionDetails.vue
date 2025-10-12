@@ -235,7 +235,10 @@ import CopyButton from "@/components/buttons/CopyButton.vue";
 import { computed, defineComponent, type PropType } from "vue";
 import TokenBadge from "@/components/TokenBadge.vue";
 import { Network } from "@/enums/networks";
-import { convertLovelaceToADA } from "@/utils/utils";
+import {
+  convertLovelaceToADA,
+  getCardanoScanTransactionURL,
+} from "@/utils/utils";
 import type { Token } from "@stricahq/typhonjs/dist/types";
 import {
   Transaction,
@@ -252,12 +255,11 @@ export default defineComponent({
     currentNetwork: { type: String, required: false, default: "" },
   },
   setup(props) {
-    const transactionHashLink = computed(
-      () =>
-        "https://" +
-        (props.currentNetwork == Network.PREPROD ? "preprod." : "") +
-        "cardanoscan.io/transaction/" +
-        props.transactionHash,
+    const transactionHashLink = computed(() =>
+      getCardanoScanTransactionURL({
+        currentNetwork: props.currentNetwork,
+        transactionId: props.transactionHash,
+      }),
     );
 
     const inputs = computed(() => {
@@ -314,10 +316,15 @@ export default defineComponent({
             let deposit = 0;
             let certificateType = "";
 
-            if (certificate.type == 7) {
+            if (
+              certificate.type ==
+              TyphonTypes.CertificateType.STAKE_KEY_REGISTRATION
+            ) {
               deposit = certificate.cert.deposit.toNumber();
               certificateType = "Stake Key Registration";
-            } else if (certificate.type == 2) {
+            } else if (
+              certificate.type == TyphonTypes.CertificateType.STAKE_DELEGATION
+            ) {
               poolHash = certificate.cert.poolHash;
               certificateType = "Stake Pool Delegation";
             }

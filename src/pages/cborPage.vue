@@ -258,6 +258,7 @@ import { Network } from "@/enums/networks";
 import CopyButton from "@/components/buttons/CopyButton.vue";
 import TokenBadge from "@/components/TokenBadge.vue";
 import AssetBadge from "./Transaction/components/mintAssets/assetBadge.vue";
+import { CertificateType } from "@stricahq/cardano-codec/dist/constants";
 
 export default defineComponent({
   components: { CopyButton, TokenBadge, AssetBadge },
@@ -346,12 +347,12 @@ export default defineComponent({
               let deposit = 0;
               let certificateType = "";
 
-              if (certificate.type == 7) {
+              if (certificate.type == CertificateType.STAKE_REG) {
                 deposit = convertLovelaceToADA(
                   BigNumber(certificate.cert.deposit),
                 ).toNumber();
                 certificateType = "Stake Key Registration";
-              } else if (certificate.type == 2) {
+              } else if (certificate.type == CertificateType.STAKE_DELEGATION) {
                 poolHash = certificate.cert.poolKeyHash;
                 certificateType = "Stake Pool Delegation";
               }
