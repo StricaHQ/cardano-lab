@@ -225,8 +225,7 @@ export default {
       } else {
         try {
           JSON.parse(policyScriptField.value);
-        } catch (e) {
-          console.log(e);
+        } catch {
           policyScriptErrorMessage.value = "Invalid format";
         }
       }

@@ -19,7 +19,7 @@
     <div class="w-max flex items-center justify-between gap-x-4 px-4">
       <span class="textColor1 text-sm font-LabMono">{{ amount }}</span>
 
-      <button @click="deleteToken()">
+      <button v-if="enableDelete" @click="deleteToken()">
         <Close class="text-red-500 size-3.5" />
       </button>
     </div>
