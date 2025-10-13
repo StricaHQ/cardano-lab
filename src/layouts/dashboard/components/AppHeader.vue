@@ -128,7 +128,7 @@ export default defineComponent({
       } else if (route.path.startsWith("/transaction")) {
         return "/transaction/buildTransaction";
       } else {
-        return "/cbo/cborView";
+        return "/cbor/cborView";
       }
     });
 
