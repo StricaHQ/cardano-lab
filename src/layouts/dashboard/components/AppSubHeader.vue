@@ -7,7 +7,7 @@
           class="flex justify-start gap-x-6 col-span-5 lg:col-span-3 overflow-auto no-scrollbar"
         >
           <RouterLink
-            v-for="item in subHeaderItem.value"
+            v-for="item in subHeaderItem"
             :key="item.itemLabel"
             :to="item.link"
           >
@@ -39,12 +39,19 @@ export default {
       { itemLabel: "Build Transaction", link: "/transaction/buildTransaction" },
       { itemLabel: "Sign Transaction", link: "/transaction/signTransaction" },
     ]);
+    const cborHeaderMenu = ref([
+      { itemLabel: "CBOR View", link: "/cbor/cborView" },
+    ]);
 
     const subHeaderItem = computed(() => {
       if (route.path.startsWith("/transaction")) {
-        return transactionHeaderMenu;
+        return transactionHeaderMenu.value;
+      } else if (route.path.startsWith("/account")) {
+        return accountHeaderMenu.value;
+      } else if (route.path.startsWith("/cbor")) {
+        return cborHeaderMenu.value;
       } else {
-        return accountHeaderMenu;
+        return [];
       }
     });
 

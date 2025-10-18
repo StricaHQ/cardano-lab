@@ -76,6 +76,8 @@ import Delete from "@/assets/icons/delete.vue";
 import { type CertificateTrxItem } from "@/types/transactions";
 import { isHexString } from "@/utils/inputValidators";
 import { CertificateType } from "@stricahq/typhonjs/dist/types";
+import { convertLovelaceToADA } from "@/utils/utils";
+import BigNumber from "bignumber.js";
 
 export default {
   components: {
@@ -113,7 +115,9 @@ export default {
     const addressField = ref(certificate.value?.address.getBech32());
 
     //deposit
-    const depositField = ref(certificate.value?.deposit);
+    const depositField = ref(
+      convertLovelaceToADA(BigNumber(certificate.value?.deposit)),
+    );
 
     function deleteTrxItem() {
       trxStore.deleteCertificateTrx(props.trxItemId);

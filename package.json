@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@stricahq/bip32ed25519": "^1.1.0",
+    "@stricahq/cardano-codec": "^2.0.4",
     "@stricahq/typhonjs": "^3.0.1",
     "axios": "^1.11.0",
     "bignumber.js": "^9.3.1",
