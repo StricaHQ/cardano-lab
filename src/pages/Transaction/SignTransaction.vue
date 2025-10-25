@@ -76,9 +76,10 @@
             </div>
           </div>
           <div class="flex flex-col gap-y-0.5">
-            <span class="textColor2 text-xs">Tokens</span>
+            <span v-if="input.tokens.length" class="textColor2 text-xs"
+              >Tokens</span
+            >
             <div
-              v-if="input.tokens.length"
               class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
             >
               <TokenBadge
@@ -90,7 +91,6 @@
                 :enableDelete="false"
               />
             </div>
-            <div v-else>----</div>
           </div>
         </div>
       </div>
@@ -128,10 +128,9 @@
               </span>
             </div>
           </div>
-          <div class="flex flex-col gap-y-0.5">
+          <div v-if="output.tokens.length" class="flex flex-col gap-y-0.5">
             <span class="textColor2 text-xs">Tokens</span>
             <div
-              v-if="output.tokens.length"
               class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
             >
               <TokenBadge
@@ -143,19 +142,17 @@
                 :enableDelete="false"
               />
             </div>
-            <div v-else>----</div>
           </div>
         </div>
       </div>
       <!-- mint -->
-      <div class="w-full card1 flex flex-col gap-y-2">
+      <div v-if="mints.length" class="w-full card1 flex flex-col gap-y-2">
         <div class="flex items-center gap-x-2">
           <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
             <span class="textColor1 text-sm font-medium">MINTS</span>
           </div>
         </div>
-        <div v-if="!mints.length">----</div>
         <div
           v-for="(mint, index) in mints"
           :key="index"
@@ -174,10 +171,9 @@
             </div>
           </div>
 
-          <div class="flex flex-col gap-y-0.5">
+          <div v-if="mint.assets.length" class="flex flex-col gap-y-0.5">
             <span class="textColor2 text-xs">Assets</span>
             <div
-              v-if="mint.assets.length"
               class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
             >
               <AssetBadge
@@ -188,12 +184,14 @@
                 :enableDelete="false"
               />
             </div>
-            <div v-else>----</div>
           </div>
         </div>
       </div>
       <!-- certificate -->
-      <div class="w-full card1 flex flex-col gap-y-2">
+      <div
+        v-if="certificates.length"
+        class="w-full card1 flex flex-col gap-y-2"
+      >
         <div class="flex items-center gap-x-2">
           <div class="w-2 h-2 rounded-full bg-gray-800"></div>
           <div>
@@ -201,7 +199,6 @@
           </div>
         </div>
 
-        <div v-if="!certificates.length">----</div>
         <div
           v-for="(certificate, index) in certificates"
           :key="index"
@@ -244,42 +241,7 @@
           </div>
         </div>
       </div>
-      <!-- sign -->
-      <!-- <div class="w-full card1 flex flex-col gap-y-2">
-        <div class="flex items-center gap-x-2">
-          <div class="w-2 h-2 rounded-full bg-gray-800"></div>
-          <div>
-            <span class="textColor1 text-sm font-medium">SIGN</span>
-          </div>
-        </div>
-        <div class="cardWhite cardWhite flex flex-col gap-y-4">
-          <div class="headingBadge">
-            <span>Private Keys</span>
-          </div>
-          <div v-for="key in privateKeys" :key="key.id" class="flex gap-x-4">
-            <input type="text" class="inputField" />
-            <AppButton
-              @onClick="deletePrivateKey(key.id)"
-              btnClass="bg-red-50 space-x-2"
-              size="xs"
-            >
-              <span>
-                <font-awesome-icon
-                  class="text-red-500 text-xs"
-                  :icon="['fas', 'trash']"
-              /></span>
-            </AppButton>
-          </div>
 
-          <AppButton
-            size="sm"
-            btnClass="bg-secondary max-w-max"
-            @onClick="addPrivateKey"
-          >
-            <span class="text-xs text-white">Add</span></AppButton
-          >
-        </div>
-      </div> -->
       <!-- signature -->
       <AppButton
         :is-disabled="!signatures.length"
@@ -382,15 +344,15 @@ import { Network } from "@/enums/networks";
 import { useRouter } from "vue-router";
 import {
   convertLovelaceToADA,
+  formatToken,
   getCardanoScanTransactionURL,
 } from "@/utils/utils";
-import type { Token } from "@stricahq/typhonjs/dist/types";
 import {
   address as TyphonAddress,
   types as TyphonTypes,
 } from "@stricahq/typhonjs";
 import { getNetworkParameters } from "@/lib/helpers/networks";
-import AssetBadge from "./components/mintAssets/assetBadge.vue";
+import AssetBadge from "./components/mints/components/assetBadge.vue";
 
 export default defineComponent({
   components: {
@@ -402,6 +364,7 @@ export default defineComponent({
     Check,
   },
   setup() {
+    const router = useRouter();
     const trxStore = useTransactionsStore();
 
     const transactionHash = computed(
@@ -509,32 +472,7 @@ export default defineComponent({
       });
     });
 
-    function formatToken(tokens: Token[]) {
-      return tokens.map((token) => {
-        return {
-          policyId: token.policyId,
-          assetName: token.assetName,
-          amount: token.amount.toString(),
-        };
-      });
-    }
     const signatures = computed(() => trxStore.witnesses);
-
-    const privateKeyId = ref<number>(0);
-    const privateKeys = ref<Array<{ id: number; keys: string }>>([
-      { id: privateKeyId.value++, keys: "" },
-    ]);
-
-    function addPrivateKey() {
-      privateKeys.value.push({ id: privateKeyId.value++, keys: "" });
-    }
-
-    function deletePrivateKey(id: number) {
-      privateKeys.value = privateKeys.value.filter((key) => key.id !== id);
-      if (!privateKeys.value.length) {
-        addPrivateKey();
-      }
-    }
 
     const trxSubmitEndPoint = computed(() => trxStore.trxSubmitEndPoint);
 
@@ -542,7 +480,7 @@ export default defineComponent({
 
     const submitTransactionError = ref("");
 
-    async function submitTransaction() {
+    const submitTransaction = async () => {
       submitTransactionError.value = "";
       try {
         const res = await axios.post(
@@ -559,15 +497,13 @@ export default defineComponent({
         submitTransactionError.value = "Transaction submission failed";
         isTransactionSubmitted.value = false;
       }
-    }
+    };
 
-    const router = useRouter();
-
-    function closeTransactionSubmissionSuccessDialog() {
+    const closeTransactionSubmissionSuccessDialog = () => {
       isTransactionSubmitted.value = false;
       trxStore.reset();
       router.push("/transaction/buildTransaction");
-    }
+    };
 
     const isSubmitButtonDisabled = computed(
       () =>
@@ -578,14 +514,11 @@ export default defineComponent({
 
     const isShowSignature = ref(false);
 
-    function addSignature() {
+    const addSignature = () => {
       isShowSignature.value = true;
-    }
+    };
 
     return {
-      privateKeys,
-      addPrivateKey,
-      deletePrivateKey,
       transactionHash,
       transactionFee,
       inputs,

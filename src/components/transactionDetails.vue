@@ -237,9 +237,10 @@ import TokenBadge from "@/components/TokenBadge.vue";
 import { Network } from "@/enums/networks";
 import {
   convertLovelaceToADA,
+  formatToken,
   getCardanoScanTransactionURL,
 } from "@/utils/utils";
-import type { Token } from "@stricahq/typhonjs/dist/types";
+
 import {
   Transaction,
   address as TyphonAddress,
@@ -333,16 +334,6 @@ export default defineComponent({
         }
       });
     });
-
-    function formatToken(tokens: Token[]) {
-      return tokens.map((token) => {
-        return {
-          policyId: token.policyId,
-          assetName: token.assetName,
-          amount: token.amount.toString(),
-        };
-      });
-    }
 
     return {
       inputs,

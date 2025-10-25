@@ -1,7 +1,7 @@
 <template>
   <div class="cardWhite flex flex-col gap-y-4">
     <div class="headingBadge">
-      <span>Certificate #{{ trxCount }}</span>
+      <span>Certificate #{{ index }}</span>
     </div>
 
     <div class="flex flex-col gap-y-3">
@@ -57,7 +57,7 @@
         <AppButton
           size="sm"
           btnClass="border border-red-500 bg-red-50 space-x-2"
-          @onClick="deleteTrxItem"
+          @onClick="deleteCertificate"
         >
           <Delete class="text-red-500 size-4" />
           <span class="text-xs text-red-500">Delete</span>
@@ -71,13 +71,14 @@
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
 import { computed, ref, watch } from "vue";
-import { useTransactionsStore } from "../store";
+
 import Delete from "@/assets/icons/delete.vue";
 import { type CertificateTrxItem } from "@/types/transactions";
 import { isHexString } from "@/utils/inputValidators";
 import { CertificateType } from "@stricahq/typhonjs/dist/types";
 import { convertLovelaceToADA } from "@/utils/utils";
 import BigNumber from "bignumber.js";
+import { useCertificateStore } from "./store";
 
 export default {
   components: {
@@ -85,15 +86,15 @@ export default {
     Delete,
   },
   props: {
-    trxCount: { type: Number, required: true },
-    trxItemId: { type: Number, required: true },
+    index: { type: Number, required: true },
+    id: { type: Number, required: true },
   },
   setup(props) {
-    const trxStore = useTransactionsStore();
+    const certificateStore = useCertificateStore();
 
     const certificate = computed(() => {
       return (
-        trxStore.getCertificateTrxById(props.trxItemId) ||
+        certificateStore.getCertificateById(props.id) ||
         ({} as CertificateTrxItem)
       );
     });
@@ -103,8 +104,8 @@ export default {
     const poolHashErrorMessage = ref("");
 
     watch(poolHashField, () => {
-      trxStore.setCertificateFields(
-        props.trxItemId,
+      certificateStore.setCertificateField(
+        props.id,
         "poolHash",
         poolHashField.value as string,
       );
@@ -119,20 +120,20 @@ export default {
       convertLovelaceToADA(BigNumber(certificate.value?.deposit)),
     );
 
-    function deleteTrxItem() {
-      trxStore.deleteCertificateTrx(props.trxItemId);
-    }
+    const deleteCertificate = () => {
+      certificateStore.deleteCertificate(props.id);
+    };
 
-    function getCertificateTypeInText(type: CertificateType) {
+    const getCertificateTypeInText = (type: CertificateType) => {
       switch (type) {
         case CertificateType.STAKE_KEY_REGISTRATION:
           return "Stake Key Registration";
         case CertificateType.STAKE_DELEGATION:
           return "Stake Pool Delegation";
       }
-    }
+    };
 
-    function isFormValid() {
+    const isFormValid = () => {
       if (
         certificate.value.certificateType === CertificateType.STAKE_DELEGATION
       )
@@ -145,7 +146,7 @@ export default {
 
       if (poolHashErrorMessage.value) return false;
       return true;
-    }
+    };
 
     return {
       poolHashField,
@@ -154,7 +155,7 @@ export default {
       certificate,
       CertificateType,
       poolHashErrorMessage,
-      deleteTrxItem,
+      deleteCertificate,
       isFormValid,
       getCertificateTypeInText,
     };

@@ -13,7 +13,7 @@ export const useAccountStore = defineStore("accountStore", () => {
   const account = ref<Account>();
   const wallet = ref<{ mnemonic: string }>({ mnemonic: "" });
 
-  async function setAccount() {
+  const setAccount = async () => {
     const currentNetwork = computed(
       () => useTransactionsStore().currentNetwork,
     );
@@ -42,7 +42,7 @@ export const useAccountStore = defineStore("accountStore", () => {
       },
       { immediate: true },
     );
-  }
+  };
 
   return {
     account,

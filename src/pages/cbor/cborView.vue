@@ -75,7 +75,7 @@
               <span class="textColor2 text-xs">Index</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ input.index || "----" }}
+                  {{ isNaN(input.index) ? "--" : input.index }}
                 </span>
               </div>
             </div>
@@ -115,10 +115,9 @@
                 </span>
               </div>
             </div>
-            <div class="flex flex-col gap-y-0.5">
+            <div v-if="output.tokens" class="flex flex-col gap-y-0.5">
               <span class="textColor2 text-xs">Tokens</span>
               <div
-                v-if="output.tokens"
                 class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
               >
                 <TokenBadge
@@ -130,20 +129,18 @@
                   :enableDelete="false"
                 />
               </div>
-              <div v-else>----</div>
             </div>
           </div>
         </div>
 
         <!-- mints -->
-        <div class="w-full card1 flex flex-col gap-y-2">
+        <div v-if="mints.length" class="w-full card1 flex flex-col gap-y-2">
           <div class="flex items-center gap-x-2">
             <div class="w-2 h-2 rounded-full bg-gray-800"></div>
             <div>
               <span class="textColor1 text-sm font-medium">MINTS</span>
             </div>
           </div>
-          <div v-if="!mints">----</div>
           <div
             v-for="(mint, index) in mints"
             :key="index"
@@ -162,10 +159,9 @@
               </div>
             </div>
 
-            <div class="flex flex-col gap-y-0.5">
+            <div v-if="mint.assets" class="flex flex-col gap-y-0.5">
               <span class="textColor2 text-xs">Assets</span>
               <div
-                v-if="mint.assets"
                 class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
               >
                 <AssetBadge
@@ -175,13 +171,12 @@
                   :amount="asset.amount"
                 />
               </div>
-              <div v-else>----</div>
             </div>
           </div>
         </div>
 
         <!-- certificate -->
-        <div class="w-full card1 flex flex-col gap-y-2">
+        <div v-if="certificates" class="w-full card1 flex flex-col gap-y-2">
           <div class="flex items-center gap-x-2">
             <div class="w-2 h-2 rounded-full bg-gray-800"></div>
             <div>
@@ -189,7 +184,6 @@
             </div>
           </div>
 
-          <div v-if="!certificates">----</div>
           <div
             v-for="(certificate, index) in certificates"
             :key="index"
@@ -202,7 +196,7 @@
               <span class="textColor2 text-xs">Certificate</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ certificate?.certificateType }}
+                  {{ certificate?.certificateType || "----" }}
                 </span>
               </div>
             </div>
@@ -210,7 +204,7 @@
               <span class="textColor2 text-xs">Pool Hash</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ certificate.poolHash }}
+                  {{ certificate.poolHash || "----" }}
                 </span>
               </div>
             </div>
@@ -240,7 +234,7 @@
 import { computed, defineComponent, onMounted, ref, watch } from "vue";
 import { conway } from "@stricahq/cardano-codec";
 import * as cbors from "@stricahq/cbors";
-import { useTransactionsStore } from "./Transaction/store";
+import { useTransactionsStore } from "../Transaction/store";
 import {
   type Transaction,
   type Token,
@@ -257,7 +251,7 @@ import { getNetworkParameters } from "@/lib/helpers/networks";
 import { Network } from "@/enums/networks";
 import CopyButton from "@/components/buttons/CopyButton.vue";
 import TokenBadge from "@/components/TokenBadge.vue";
-import AssetBadge from "./Transaction/components/mintAssets/assetBadge.vue";
+import AssetBadge from "@/pages/Transaction/components/mints/components/assetBadge.vue";
 import { CertificateType } from "@stricahq/cardano-codec/dist/constants";
 
 export default defineComponent({
@@ -363,7 +357,7 @@ export default defineComponent({
       );
     });
 
-    function formatToken(tokens: Token[] | undefined) {
+    const formatToken = (tokens: Token[] | undefined) => {
       return tokens?.map((token) => {
         return {
           policyId: token.policyId,
@@ -371,7 +365,7 @@ export default defineComponent({
           amount: token.amount.toString(),
         };
       });
-    }
+    };
 
     onMounted(() => {
       if (trxStore.signedTransactionCBOR) {

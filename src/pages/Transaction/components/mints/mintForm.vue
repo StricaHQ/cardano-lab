@@ -1,7 +1,7 @@
 <template>
   <div class="cardWhite flex flex-col gap-y-4">
     <div class="headingBadge">
-      <span> Mint #{{ mintCount }}</span>
+      <span> Mint #{{ index }}</span>
     </div>
     <div class="flex flex-col gap-y-3">
       <div class="flex flex-col gap-y-3 md:flex-row gap-x-4 w-full">
@@ -69,7 +69,7 @@
                           ref="assetForm"
                           :assetCount="index + 1"
                           :asset="asset"
-                          :mintId="mintId"
+                          :mintId="id"
                         />
                       </div>
                     </div>
@@ -93,7 +93,7 @@
         <AppButton
           size="sm"
           btnClass="border border-red-500 hover:border-red-700 space-x-2"
-          @onClick="clearTrxItem"
+          @onClick="clearMint"
         >
           <Eraser class="text-red-500 size-4" />
           <span class="text-xs text-red-500">Clear</span>
@@ -101,7 +101,7 @@
         <AppButton
           size="sm"
           btnClass="border border-red-500 bg-red-50 space-x-2"
-          @onClick="deleteTrxItem"
+          @onClick="deleteMint"
         >
           <Delete class="text-red-500 size-4" />
           <span class="text-xs text-red-500">Delete</span>
@@ -114,12 +114,12 @@
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
 import { computed, ref, watch } from "vue";
-import { useTransactionsStore } from "../store";
 import DialogBox from "@/components/dialog/dialog.vue";
 import Delete from "@/assets/icons/delete.vue";
 import Eraser from "@/assets/icons/eraser.vue";
-import AssetBadge from "./mintAssets/assetBadge.vue";
-import AssetForm from "./mintAssets/assetForm.vue";
+import AssetBadge from "@/pages/Transaction/components/mints/components/assetBadge.vue";
+import AssetForm from "./components/assetForm.vue";
+import { useMintStore } from "./store";
 
 export default {
   components: {
@@ -131,14 +131,14 @@ export default {
     AssetBadge,
   },
   props: {
-    mintCount: { type: Number, required: true },
-    mintId: { type: Number, required: true },
+    index: { type: Number, required: true },
+    id: { type: Number, required: true },
   },
   setup(props) {
-    const trxStore = useTransactionsStore();
+    const mintStore = useMintStore();
 
-    const transaction = computed(() => {
-      return trxStore.getMintTrxById(props.mintId);
+    const mint = computed(() => {
+      return mintStore.getMintById(props.id);
     });
 
     const assetForm = ref();
@@ -147,11 +147,11 @@ export default {
     const assetsListErrorMessage = ref("");
     const areAssetsHasError = ref(false);
     //policyScript
-    const policyScriptField = ref(transaction.value?.policyScript);
+    const policyScriptField = ref(mint.value?.policyScript);
 
     watch(policyScriptField, () => {
-      trxStore.setMintTrxFields(
-        props.mintId,
+      mintStore.setMintField(
+        props.id,
         "policyScript",
         policyScriptField.value as string,
       );
@@ -159,7 +159,7 @@ export default {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function onPolicyScriptInput(event: any) {
+    const onPolicyScriptInput = (event: any) => {
       const raw = event.target.value;
       if (raw.trim()) {
         try {
@@ -169,16 +169,14 @@ export default {
           policyScriptField.value = "Invalid JSON format";
         }
       }
-    }
+    };
 
-    const assets = computed(
-      () => trxStore.getMintTrxById(props.mintId)?.assets,
-    );
+    const assets = computed(() => mint.value?.assets);
 
     const filteredAssets = computed(() => {
       return (
-        trxStore
-          .getMintTrxById(props.mintId)
+        mintStore
+          .getMintById(props.id)
           ?.assets.filter(
             (asset) => asset.assetName != "" && asset.amount != "",
           ) ?? []
@@ -187,13 +185,12 @@ export default {
 
     const showAddAssetDialog = ref(false);
 
-    function openAddAssetDialog() {
-      if (!assets.value?.length)
-        trxStore.addAssetsToMintTrx({ mintId: props.mintId });
+    const openAddAssetDialog = () => {
+      if (!assets.value?.length) mintStore.addAsset(props.id);
       showAddAssetDialog.value = true;
-    }
+    };
 
-    function closeAddAssetDialog() {
+    const closeAddAssetDialog = () => {
       areAssetsHasError.value = false;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -204,22 +201,22 @@ export default {
       });
 
       if (!areAssetsHasError.value) showAddAssetDialog.value = false;
-    }
+    };
 
-    function deleteAsset(id: number) {
-      trxStore.deleteMintTrxAsset({ mintId: props.mintId, assetId: id });
-    }
+    const deleteAsset = (id: number) => {
+      mintStore.deleteAsset({ id: props.id, assetId: id });
+    };
 
-    function clearTrxItem() {
-      trxStore.clearMintTrxItem(props.mintId);
-      policyScriptField.value = transaction.value?.policyScript;
-    }
+    const clearMint = () => {
+      mintStore.clearMint(props.id);
+      policyScriptField.value = mint.value?.policyScript;
+    };
 
-    function deleteTrxItem() {
-      trxStore.deleteMintTrx(props.mintId);
-    }
+    const deleteMint = () => {
+      mintStore.deleteMint(props.id);
+    };
 
-    function isFormValid() {
+    const isFormValid = () => {
       if (!policyScriptField.value) {
         policyScriptErrorMessage.value = "Required";
       } else {
@@ -238,11 +235,11 @@ export default {
       if (policyScriptErrorMessage.value) return false;
 
       return true;
-    }
+    };
 
-    function addAsset() {
-      trxStore.addAssetsToMintTrx({ mintId: props.mintId });
-    }
+    const addAsset = () => {
+      mintStore.addAsset(props.id);
+    };
 
     return {
       policyScriptField,
@@ -250,8 +247,8 @@ export default {
       filteredAssets,
       assets,
       addAsset,
-      clearTrxItem,
-      deleteTrxItem,
+      clearMint,
+      deleteMint,
       showAddAssetDialog,
       openAddAssetDialog,
       closeAddAssetDialog,

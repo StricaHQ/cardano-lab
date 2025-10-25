@@ -51,9 +51,10 @@
 import AppButton from "@/components/buttons/AppButton.vue";
 import { computed, defineComponent, ref, watch, type PropType } from "vue";
 import { isHexString } from "@/utils/inputValidators";
-import { useTransactionsStore } from "../../store";
 import type { Asset } from "@/types/transactions";
 import Delete from "@/assets/icons/delete.vue";
+import { useMintStore } from "../store";
+import { onlyNumbers } from "@/utils/utils";
 
 export default defineComponent({
   components: { AppButton, Delete },
@@ -63,7 +64,7 @@ export default defineComponent({
     assetCount: { type: Number, required: true },
   },
   setup(props) {
-    const trxStore = useTransactionsStore();
+    const mintStore = useMintStore();
 
     const amount = ref(props.asset.amount);
     const assetName = ref(props.asset.assetName);
@@ -84,8 +85,8 @@ export default defineComponent({
           "Invalid format. Use only hexadecimal characters.";
       }
 
-      trxStore.updateMintAsset({
-        mintId: props.mintId,
+      mintStore.updateAsset({
+        id: props.mintId,
         assetId: props.asset.id,
         field: "assetName",
         value: assetName.value,
@@ -95,8 +96,8 @@ export default defineComponent({
     watch(amount, () => {
       amountErrorMessage.value = "";
 
-      trxStore.updateMintAsset({
-        mintId: props.mintId,
+      mintStore.updateAsset({
+        id: props.mintId,
         assetId: props.asset.id,
         field: "amount",
         value: amount.value,
@@ -104,19 +105,18 @@ export default defineComponent({
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function onAmountInput(event: any) {
-      // Remove anything that's not a digit
-      amount.value = event.target.value.replace(/\D+/g, "");
-    }
+    const onAmountInput = (event: any) => {
+      amount.value = onlyNumbers(event.target.value);
+    };
 
-    function deleteAsset() {
-      trxStore.deleteMintTrxAsset({
-        mintId: props.mintId,
+    const deleteAsset = () => {
+      mintStore.deleteAsset({
+        id: props.mintId,
         assetId: props.asset.id,
       });
-    }
+    };
 
-    function validateForm() {
+    const validateForm = () => {
       if (!assetName.value && !amount.value) return true;
 
       if (!assetName.value) assetNameErrorMessage.value = "required";
@@ -127,7 +127,7 @@ export default defineComponent({
         return false;
 
       return true;
-    }
+    };
 
     return {
       amount,
