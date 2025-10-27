@@ -196,7 +196,7 @@
               <span class="textColor2 text-xs">Certificate</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ certificate?.certificateType || "----" }}
+                  {{ certificate?.certificateTypeInText || "----" }}
                 </span>
               </div>
             </div>
@@ -339,18 +339,72 @@ export default defineComponent({
               ).getBech32();
               let poolHash = "";
               let deposit = 0;
-              let certificateType = "";
+              let certificateTypeInText = "";
 
               if (certificate.type == CertificateType.STAKE_REG) {
                 deposit = convertLovelaceToADA(
                   BigNumber(certificate.cert.deposit),
                 ).toNumber();
-                certificateType = "Stake Key Registration";
               } else if (certificate.type == CertificateType.STAKE_DELEGATION) {
                 poolHash = certificate.cert.poolKeyHash;
-                certificateType = "Stake Pool Delegation";
               }
-              return { address, deposit, poolHash, certificateType };
+
+              switch (certificate.type) {
+                case CertificateType.STAKE_REG:
+                  certificateTypeInText = "Stake Key Registration";
+                  break;
+                case CertificateType.STAKE_DELEGATION:
+                  certificateTypeInText = "Stake Pool Delegation";
+                  break;
+                case CertificateType.DREP_REG:
+                  certificateTypeInText = "Drep Registration";
+                  break;
+                case CertificateType.COMMITTEE_AUTH_HOT:
+                  certificateTypeInText = "Committee Auth Hot";
+                  break;
+                case CertificateType.DREP_DE_REG:
+                  certificateTypeInText = "Drep Deregistration";
+                  break;
+                case CertificateType.COMMITTEE_RESIGN_COLD:
+                  certificateTypeInText = "Committee Resign cold";
+                  break;
+                case CertificateType.DREP_UPDATE:
+                  certificateTypeInText = "Drep Update";
+                  break;
+                case CertificateType.POOL_DE_REG:
+                  certificateTypeInText = "Pool Deregistration";
+                  break;
+                case CertificateType.POOL_REG:
+                  certificateTypeInText = "Pool Registration";
+                  break;
+                case CertificateType.STAKE_DE_REG:
+                  certificateTypeInText = "Stake Deregistration";
+                  break;
+                case CertificateType.STAKE_KEY_DE_REG:
+                  certificateTypeInText = "Stake Key Deregistration";
+                  break;
+                case CertificateType.STAKE_KEY_REG:
+                  certificateTypeInText = "Stake Key Registration";
+                  break;
+                case CertificateType.STAKE_REG_DELEG:
+                  certificateTypeInText = "Stake Registration Delegation";
+                  break;
+                case CertificateType.STAKE_VOTE_DELEG:
+                  certificateTypeInText = "Stake Vote Delegation";
+                  break;
+                case CertificateType.STAKE_VOTE_REG_DELEG:
+                  certificateTypeInText = "Stake Vote Registration Delegation";
+                  break;
+                case CertificateType.VOTE_DELEG:
+                  certificateTypeInText = "Vote Delegation";
+                  break;
+                case CertificateType.VOTE_REG_DELEG:
+                  certificateTypeInText = "Vote Registration Delegation";
+                  break;
+                default:
+                  certificateTypeInText = "Unknown Certificate";
+              }
+              return { address, deposit, poolHash, certificateTypeInText };
             }
           }
         },
