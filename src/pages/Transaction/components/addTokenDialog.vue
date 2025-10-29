@@ -53,6 +53,7 @@
 import AppButton from "@/components/buttons/AppButton.vue";
 import { computed, defineComponent, ref, watch } from "vue";
 import { isHexString } from "@/utils/inputValidators";
+import { onlyNumbers } from "@/utils/utils";
 
 export default defineComponent({
   components: { AppButton },
@@ -103,10 +104,9 @@ export default defineComponent({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function onAmountInput(event: any) {
-      // Remove anything that's not a digit
-      amount.value = event.target.value.replace(/\D+/g, "");
-    }
+    const onAmountInput = (event: any) => {
+      amount.value = onlyNumbers(event.target.value);
+    };
     return {
       amount,
       policyId,

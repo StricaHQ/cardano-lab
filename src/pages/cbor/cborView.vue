@@ -75,7 +75,7 @@
               <span class="textColor2 text-xs">Index</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ input.index || "----" }}
+                  {{ isNaN(input.index) ? "--" : input.index }}
                 </span>
               </div>
             </div>
@@ -115,10 +115,9 @@
                 </span>
               </div>
             </div>
-            <div class="flex flex-col gap-y-0.5">
+            <div v-if="output.tokens" class="flex flex-col gap-y-0.5">
               <span class="textColor2 text-xs">Tokens</span>
               <div
-                v-if="output.tokens"
                 class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
               >
                 <TokenBadge
@@ -130,20 +129,18 @@
                   :enableDelete="false"
                 />
               </div>
-              <div v-else>----</div>
             </div>
           </div>
         </div>
 
         <!-- mints -->
-        <div class="w-full card1 flex flex-col gap-y-2">
+        <div v-if="mints.length" class="w-full card1 flex flex-col gap-y-2">
           <div class="flex items-center gap-x-2">
             <div class="w-2 h-2 rounded-full bg-gray-800"></div>
             <div>
               <span class="textColor1 text-sm font-medium">MINTS</span>
             </div>
           </div>
-          <div v-if="!mints">----</div>
           <div
             v-for="(mint, index) in mints"
             :key="index"
@@ -162,10 +159,9 @@
               </div>
             </div>
 
-            <div class="flex flex-col gap-y-0.5">
+            <div v-if="mint.assets" class="flex flex-col gap-y-0.5">
               <span class="textColor2 text-xs">Assets</span>
               <div
-                v-if="mint.assets"
                 class="flex gap-x-4 items-center flex-wrap justify-start gap-y-4"
               >
                 <AssetBadge
@@ -175,13 +171,12 @@
                   :amount="asset.amount"
                 />
               </div>
-              <div v-else>----</div>
             </div>
           </div>
         </div>
 
         <!-- certificate -->
-        <div class="w-full card1 flex flex-col gap-y-2">
+        <div v-if="certificates" class="w-full card1 flex flex-col gap-y-2">
           <div class="flex items-center gap-x-2">
             <div class="w-2 h-2 rounded-full bg-gray-800"></div>
             <div>
@@ -189,7 +184,6 @@
             </div>
           </div>
 
-          <div v-if="!certificates">----</div>
           <div
             v-for="(certificate, index) in certificates"
             :key="index"
@@ -202,7 +196,7 @@
               <span class="textColor2 text-xs">Certificate</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ certificate?.certificateType }}
+                  {{ certificate?.certificateTypeInText || "----" }}
                 </span>
               </div>
             </div>
@@ -210,7 +204,7 @@
               <span class="textColor2 text-xs">Pool Hash</span>
               <div class="w-full flex gap-x-4 items-center">
                 <span class="text-sm textColor1 break-all">
-                  {{ certificate.poolHash }}
+                  {{ certificate.poolHash || "----" }}
                 </span>
               </div>
             </div>
@@ -240,7 +234,7 @@
 import { computed, defineComponent, onMounted, ref, watch } from "vue";
 import { conway } from "@stricahq/cardano-codec";
 import * as cbors from "@stricahq/cbors";
-import { useTransactionsStore } from "./Transaction/store";
+import { useTransactionsStore } from "../Transaction/store";
 import {
   type Transaction,
   type Token,
@@ -257,7 +251,7 @@ import { getNetworkParameters } from "@/lib/helpers/networks";
 import { Network } from "@/enums/networks";
 import CopyButton from "@/components/buttons/CopyButton.vue";
 import TokenBadge from "@/components/TokenBadge.vue";
-import AssetBadge from "./Transaction/components/mintAssets/assetBadge.vue";
+import AssetBadge from "@/pages/Transaction/components/mints/components/assetBadge.vue";
 import { CertificateType } from "@stricahq/cardano-codec/dist/constants";
 
 export default defineComponent({
@@ -345,25 +339,79 @@ export default defineComponent({
               ).getBech32();
               let poolHash = "";
               let deposit = 0;
-              let certificateType = "";
+              let certificateTypeInText = "";
 
               if (certificate.type == CertificateType.STAKE_REG) {
                 deposit = convertLovelaceToADA(
                   BigNumber(certificate.cert.deposit),
                 ).toNumber();
-                certificateType = "Stake Key Registration";
               } else if (certificate.type == CertificateType.STAKE_DELEGATION) {
                 poolHash = certificate.cert.poolKeyHash;
-                certificateType = "Stake Pool Delegation";
               }
-              return { address, deposit, poolHash, certificateType };
+
+              switch (certificate.type) {
+                case CertificateType.STAKE_REG:
+                  certificateTypeInText = "Stake Key Registration";
+                  break;
+                case CertificateType.STAKE_DELEGATION:
+                  certificateTypeInText = "Stake Pool Delegation";
+                  break;
+                case CertificateType.DREP_REG:
+                  certificateTypeInText = "Drep Registration";
+                  break;
+                case CertificateType.COMMITTEE_AUTH_HOT:
+                  certificateTypeInText = "Committee Auth Hot";
+                  break;
+                case CertificateType.DREP_DE_REG:
+                  certificateTypeInText = "Drep Deregistration";
+                  break;
+                case CertificateType.COMMITTEE_RESIGN_COLD:
+                  certificateTypeInText = "Committee Resign cold";
+                  break;
+                case CertificateType.DREP_UPDATE:
+                  certificateTypeInText = "Drep Update";
+                  break;
+                case CertificateType.POOL_DE_REG:
+                  certificateTypeInText = "Pool Deregistration";
+                  break;
+                case CertificateType.POOL_REG:
+                  certificateTypeInText = "Pool Registration";
+                  break;
+                case CertificateType.STAKE_DE_REG:
+                  certificateTypeInText = "Stake Deregistration";
+                  break;
+                case CertificateType.STAKE_KEY_DE_REG:
+                  certificateTypeInText = "Stake Key Deregistration";
+                  break;
+                case CertificateType.STAKE_KEY_REG:
+                  certificateTypeInText = "Stake Key Registration";
+                  break;
+                case CertificateType.STAKE_REG_DELEG:
+                  certificateTypeInText = "Stake Registration Delegation";
+                  break;
+                case CertificateType.STAKE_VOTE_DELEG:
+                  certificateTypeInText = "Stake Vote Delegation";
+                  break;
+                case CertificateType.STAKE_VOTE_REG_DELEG:
+                  certificateTypeInText = "Stake Vote Registration Delegation";
+                  break;
+                case CertificateType.VOTE_DELEG:
+                  certificateTypeInText = "Vote Delegation";
+                  break;
+                case CertificateType.VOTE_REG_DELEG:
+                  certificateTypeInText = "Vote Registration Delegation";
+                  break;
+                default:
+                  certificateTypeInText = "Unknown Certificate";
+              }
+              return { address, deposit, poolHash, certificateTypeInText };
             }
           }
         },
       );
     });
 
-    function formatToken(tokens: Token[] | undefined) {
+    const formatToken = (tokens: Token[] | undefined) => {
       return tokens?.map((token) => {
         return {
           policyId: token.policyId,
@@ -371,7 +419,7 @@ export default defineComponent({
           amount: token.amount.toString(),
         };
       });
-    }
+    };
 
     onMounted(() => {
       if (trxStore.signedTransactionCBOR) {

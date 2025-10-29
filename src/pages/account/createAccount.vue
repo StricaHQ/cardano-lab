@@ -173,7 +173,7 @@
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
 import CopyButton from "@/components/buttons/CopyButton.vue";
-import { useAccountStore } from "@/stores/openStore";
+import { useAccountStore } from "@/stores/accountStore";
 import { computed } from "vue";
 
 export default {
@@ -187,9 +187,9 @@ export default {
 
     const wallet = computed(() => accountStore.wallet);
 
-    function setAccount() {
+    const setAccount = () => {
       accountStore.setAccount();
-    }
+    };
 
     return { account, wallet, setAccount };
   },

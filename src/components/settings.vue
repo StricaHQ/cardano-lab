@@ -106,7 +106,7 @@ export default defineComponent({
 
     const networksDropdownRef = ref();
 
-    function onClickOutside(event: MouseEvent) {
+    const onClickOutside = (event: MouseEvent) => {
       if (
         isNetworksDropdownOpen.value &&
         networksDropdownRef.value &&
@@ -114,7 +114,7 @@ export default defineComponent({
       ) {
         closeNetworksDropdown();
       }
-    }
+    };
 
     onMounted(() => {
       document.addEventListener("click", onClickOutside);

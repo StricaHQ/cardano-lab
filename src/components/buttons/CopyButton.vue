@@ -19,9 +19,9 @@ export default {
   setup(props) {
     const { copyToClipboard, isCopied } = useCopyContent();
 
-    function copyContent() {
+    const copyContent = () => {
       copyToClipboard(props.content);
-    }
+    };
 
     return {
       copyToClipboard,

@@ -41,9 +41,9 @@ export default {
       return `${btnSizeClass.value} ${props.btnClass}`;
     });
 
-    function onClick() {
+    const onClick = () => {
       ctx.emit("onClick");
-    }
+    };
 
     return {
       onClick,

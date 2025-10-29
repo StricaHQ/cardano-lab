@@ -31,9 +31,9 @@ export default {
   },
   emits: ["deleteAsset"],
   setup(props, ctx) {
-    function deleteAsset() {
+    const deleteAsset = () => {
       ctx.emit("deleteAsset");
-    }
+    };
 
     return {
       deleteAsset,

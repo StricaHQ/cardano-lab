@@ -115,7 +115,7 @@ export default defineComponent({
     const menuItems = ref<Array<{ name: string; link: string }>>([
       { name: "Account", link: "/account/createAccount" },
       { name: "Transaction", link: "/transaction/buildTransaction" },
-      { name: "Cbor View", link: "/cbor/cborView" },
+      { name: "CBOR View", link: "/cbor/cborView" },
     ]);
 
     const activeLink = ref<string>("/account/createAccount");
@@ -132,13 +132,13 @@ export default defineComponent({
       }
     });
 
-    function openMenu() {
+    const openMenu = () => {
       isMenuOpen.value = true;
-    }
+    };
 
-    function closeMenu() {
+    const closeMenu = () => {
       isMenuOpen.value = false;
-    }
+    };
 
     onMounted(() => {
       activeLink.value = route.path;
@@ -149,13 +149,13 @@ export default defineComponent({
 
     const isSettingsOpen = ref(false);
 
-    function openSettings() {
+    const openSettings = () => {
       isSettingsOpen.value = true;
-    }
+    };
 
-    function closeSettings() {
+    const closeSettings = () => {
       isSettingsOpen.value = false;
-    }
+    };
 
     return {
       menuItems,

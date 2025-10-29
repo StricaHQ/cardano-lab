@@ -1,8 +1,8 @@
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout.vue";
-import AccountPage from "@/pages/AccountPage.vue";
+import CreateAccount from "@/pages/account/createAccount.vue";
 import BuildTransaction from "@/pages/Transaction/BuildTransaction.vue";
 import SignTransaction from "@/pages/Transaction/SignTransaction.vue";
-import CborPage from "@/pages/cborPage.vue";
+import CborView from "@/pages/cbor/cborView.vue";
 
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -20,7 +20,7 @@ const router = createRouter({
         {
           path: "account/createAccount",
           name: "Account",
-          component: AccountPage,
+          component: CreateAccount,
         },
         {
           path: "transaction/buildTransaction",
@@ -32,7 +32,7 @@ const router = createRouter({
           name: "SignTransaction",
           component: SignTransaction,
         },
-        { path: "cbor/cborView", name: "cborView", component: CborPage },
+        { path: "cbor/cborView", name: "cborView", component: CborView },
       ],
     },
   ],

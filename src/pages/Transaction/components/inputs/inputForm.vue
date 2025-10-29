@@ -1,7 +1,7 @@
 <template>
   <div class="cardWhite flex flex-col gap-y-4">
     <div class="headingBadge">
-      <span>Input #{{ trxCount }}</span>
+      <span>Input #{{ index }}</span>
     </div>
     <div class="flex flex-col gap-y-3">
       <div class="flex flex-col gap-y-3 md:flex-row gap-x-4 w-full">
@@ -24,7 +24,7 @@
             type="text"
             placeholder="0"
             v-model="indexField"
-            @input="onInputIndex"
+            @input="onIndexInput"
           />
           <div class="errorMessage">{{ indexErrorMessage }}</div>
         </div>
@@ -48,7 +48,7 @@
             class="inputField"
             type="text"
             placeholder="0.000000"
-            @input="onInputAmount"
+            @input="onAmountInput"
             v-model="amountField"
           />
           <div class="errorMessage">{{ amountErrorMessage }}</div>
@@ -84,7 +84,7 @@
             >
               <template #header> Add Token </template>
               <template #body>
-                <AddTokenDialog @updateTokenData="addTokens" />
+                <AddTokenDialog @updateTokenData="addToken" />
               </template>
             </DialogBox>
           </div>
@@ -96,7 +96,7 @@
         <AppButton
           size="sm"
           btnClass="border border-red-500 hover:border-red-700 space-x-2"
-          @onClick="clearTrxItem"
+          @onClick="clearInput"
         >
           <Eraser class="text-red-500 size-4" />
           <span class="text-xs text-red-500">Clear</span>
@@ -104,7 +104,7 @@
         <AppButton
           size="sm"
           btnClass="border border-red-500 bg-red-50 space-x-2"
-          @onClick="deleteTrxItem"
+          @onClick="deleteInput"
         >
           <Delete class="text-red-500 size-4" />
           <span class="text-xs text-red-500">Delete</span>
@@ -118,8 +118,8 @@
 <script lang="ts">
 import AppButton from "@/components/buttons/AppButton.vue";
 import { computed, ref, watch } from "vue";
-import { useTransactionsStore } from "../store";
-import AddTokenDialog from "./addTokenDialog.vue";
+import { useInputStore } from "./store";
+import AddTokenDialog from "../addTokenDialog.vue";
 import DialogBox from "@/components/dialog/dialog.vue";
 import { utils as TyphonUtils } from "@stricahq/typhonjs";
 import { isHexString } from "@/utils/inputValidators";
@@ -128,6 +128,7 @@ import Delete from "@/assets/icons/delete.vue";
 import Eraser from "@/assets/icons/eraser.vue";
 import TokenBadge from "@/components/TokenBadge.vue";
 import { Network } from "@/enums/networks";
+import { onlyNumbers, sanitizeAmount } from "@/utils/utils";
 
 export default {
   components: {
@@ -139,14 +140,14 @@ export default {
     TokenBadge,
   },
   props: {
-    trxCount: { type: Number, required: true },
-    trxItemId: { type: Number, required: true },
+    index: { type: Number, required: true },
+    id: { type: Number, required: true },
   },
   setup(props) {
-    const trxStore = useTransactionsStore();
+    const inputStore = useInputStore();
 
-    const transaction = computed(() => {
-      return trxStore.getInputTrxById(props.trxItemId);
+    const input = computed(() => {
+      return inputStore.getInputById(props.id);
     });
 
     const trxIdErrorMessage = ref("");
@@ -155,23 +156,19 @@ export default {
     const amountErrorMessage = ref("");
 
     //transaction Id
-    const trxIdField = ref(transaction.value?.txId);
+    const trxIdField = ref(input.value?.txId);
 
     watch(trxIdField, () => {
-      trxStore.setInputTrxFields(
-        props.trxItemId,
-        "txId",
-        trxIdField.value as string,
-      );
+      inputStore.setInputField(props.id, "txId", trxIdField.value as string);
       trxIdErrorMessage.value = "";
     });
 
     //address
-    const addressField = ref(transaction.value?.address);
+    const addressField = ref(input.value?.address);
 
     watch(addressField, () => {
-      trxStore.setInputTrxFields(
-        props.trxItemId,
+      inputStore.setInputField(
+        props.id,
         "address",
         addressField.value as string,
       );
@@ -179,90 +176,74 @@ export default {
     });
 
     //amount
-    const amountField = ref(transaction.value?.amount);
+    const amountField = ref(input.value?.amount);
 
     watch(amountField, () => {
-      trxStore.setInputTrxFields(
-        props.trxItemId,
-        "amount",
-        amountField.value as string,
-      );
+      inputStore.setInputField(props.id, "amount", amountField.value as string);
       amountErrorMessage.value = "";
     });
 
-    function onInputAmount(event: any) {
-      const raw = event.target.value;
-      if (raw.match(/^(\d+)?(\.\d{0,6})?$/)) {
-        amountField.value = raw;
-      } else {
-        amountField.value = raw
-          .replace(/[^0-9.]/g, "") // Remove non-numeric and non-dot
-          .replace(/^([^.]*\.)|\./g, "$1") // Keep only the first dot
-          .replace(/^(\d*\.\d{0,6}).*$/, "$1"); // Limit to 6 decimals
-      }
-    }
+    const onAmountInput = (event: any) => {
+      amountField.value = sanitizeAmount(event.target.value);
+    };
 
     //index
-    const indexField = ref(transaction.value?.index);
+    const indexField = ref(input.value?.index);
 
     watch(indexField, () => {
-      trxStore.setInputTrxFields(
-        props.trxItemId,
-        "index",
-        indexField.value as string,
-      );
+      inputStore.setInputField(props.id, "index", indexField.value as string);
       indexErrorMessage.value = "";
     });
 
-    function onInputIndex(event: any) {
-      indexField.value = event.target.value.replace(/\D+/g, "");
-    }
+    const onIndexInput = (event: any) => {
+      indexField.value = onlyNumbers(event.target.value);
+    };
 
     const tokensList = computed(() => {
-      return trxStore.getInputTrxById(props.trxItemId)?.tokens ?? [];
+      return inputStore.getInputById(props.id)?.tokens ?? [];
     });
 
     const showAddTokenDialog = ref(false);
 
-    function addTokens(data: {
+    const addToken = (data: {
       policyId: string;
       assetName: string;
       amount: string;
-    }) {
+    }) => {
       closeAddTokenDialog();
-      trxStore.addTokensToInputTrx({
-        trxId: props.trxItemId,
+      inputStore.addToken({
+        trxId: props.id,
         policyId: data.policyId,
         assetName: data.assetName,
         amount: data.amount,
       });
-    }
+    };
 
-    function openAddTokenDialog() {
+    const openAddTokenDialog = () => {
       showAddTokenDialog.value = true;
-    }
+    };
 
-    function closeAddTokenDialog() {
+    const closeAddTokenDialog = () => {
       showAddTokenDialog.value = false;
-    }
+    };
 
-    function deleteToken(id: number) {
-      trxStore.deleteInputTrxToken({ trxId: props.trxItemId, tokenId: id });
-    }
+    const deleteToken = (id: number) => {
+      inputStore.deleteToken({ trxId: props.id, tokenId: id });
+    };
 
-    function clearTrxItem() {
-      trxStore.clearInputTrxItem(props.trxItemId);
-      trxIdField.value = transaction.value?.txId;
-      indexField.value = transaction.value?.index;
-      addressField.value = transaction.value?.address;
-      amountField.value = transaction.value?.amount;
-    }
+    const clearInput = () => {
+      inputStore.clearInput(props.id);
+      trxIdField.value = input.value?.txId;
+      indexField.value = input.value?.index;
+      addressField.value = input.value?.address;
+      amountField.value = input.value?.amount;
+    };
 
-    function deleteTrxItem() {
-      trxStore.deleteInputTrx(props.trxItemId);
-    }
+    const deleteInput = () => {
+      inputStore.deleteInput(props.id);
+    };
 
-    function isFormValid() {
+    const isFormValid = () => {
       if (!trxIdField.value) {
         trxIdErrorMessage.value = "Required";
       } else {
@@ -319,17 +300,17 @@ export default {
       }
 
       return true;
-    }
+    };
     return {
-      addTokens,
+      addToken,
       deleteToken,
       trxIdField,
       indexField,
       amountField,
       addressField,
       tokensList,
-      clearTrxItem,
-      deleteTrxItem,
+      clearInput,
+      deleteInput,
       showAddTokenDialog,
       openAddTokenDialog,
       closeAddTokenDialog,
@@ -338,8 +319,8 @@ export default {
       addressErrorMessage,
       amountErrorMessage,
       indexErrorMessage,
-      onInputAmount,
-      onInputIndex,
+      onAmountInput,
+      onIndexInput,
     };
   },
 };

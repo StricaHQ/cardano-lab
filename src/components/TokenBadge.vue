@@ -39,9 +39,9 @@ export default {
   },
   emits: ["deleteToken"],
   setup(props, ctx) {
-    function deleteToken() {
+    const deleteToken = () => {
       ctx.emit("deleteToken");
-    }
+    };
 
     return {
       deleteToken,

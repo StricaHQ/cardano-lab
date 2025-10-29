@@ -20,14 +20,14 @@
         <div class="flex flex-col gap-y-4">
           <InputForm
             ref="inputFrom"
-            v-for="(item, index) in inputTrxForm"
-            :key="item.id"
-            :trxCount="index + 1"
-            :trxItemId="item.id"
+            v-for="(input, index) in inputs"
+            :key="input.id"
+            :index="index + 1"
+            :id="input.id"
           />
-          <AppButton @onClick="addInputTrx" btnClass="bg-secondary max-w-max">
-            <span class="text-white text-xs">Add Input</span></AppButton
-          >
+          <AppButton @onClick="addInput" btnClass="bg-secondary max-w-max">
+            <span class="text-white text-xs">Add Input</span>
+          </AppButton>
         </div>
       </div>
       <div class="w-full card1 flex flex-col gap-y-2">
@@ -40,12 +40,12 @@
         <div class="flex flex-col gap-y-4">
           <OutputForm
             ref="outputForm"
-            v-for="(item, index) in outputTrxForm"
-            :key="item.id"
-            :trxCount="index + 1"
-            :trxItemId="item.id"
+            v-for="(output, index) in outputs"
+            :key="output.id"
+            :index="index + 1"
+            :id="output.id"
           />
-          <AppButton @onClick="addOutputTrx" btnClass="bg-secondary max-w-max">
+          <AppButton @onClick="addOutput" btnClass="bg-secondary max-w-max">
             <span class="text-white text-xs">Add Output</span></AppButton
           >
         </div>
@@ -60,12 +60,12 @@
         <div class="flex flex-col gap-y-4">
           <MintForm
             ref="mintForm"
-            v-for="(item, index) in mintTrxForm"
-            :key="item.id"
-            :mintCount="index + 1"
-            :mintId="item.id"
+            v-for="(mint, index) in mints"
+            :key="mint.id"
+            :index="index + 1"
+            :id="mint.id"
           />
-          <AppButton @onClick="addMintTrx" btnClass="bg-secondary max-w-max">
+          <AppButton @onClick="addMint" btnClass="bg-secondary max-w-max">
             <span class="text-white text-xs">Add Mint</span></AppButton
           >
         </div>
@@ -80,38 +80,13 @@
         <div class="flex flex-col gap-y-4">
           <CertificateForm
             ref="certificateForm"
-            v-for="(item, index) in certificateTrxForm"
-            :key="item.id"
-            :trxCount="index + 1"
-            :trxItemId="item.id"
+            v-for="(certificate, index) in certificates"
+            :key="certificate.id"
+            :index="index + 1"
+            :id="certificate.id"
           />
           <div>
-            <div class="max-w-80 w-full relative" ref="certificatesDropdownRef">
-              <AppButton
-                btnClass="bg-secondary max-w-max text-white text-xs gap-4 "
-                :isDisabled="!isAccountAvailable"
-                @click="openCertificatesDropdown"
-              >
-                <span class="">Add Certificate</span>
-                <ChevronDown
-                  class="size-3 duration-200"
-                  :class="isCertificatesDropdownOpen ? 'rotate-180 ' : ''"
-                />
-              </AppButton>
-              <div
-                v-if="isCertificatesDropdownOpen"
-                class="absolute top-9 right-0 bg-gray-100 border border-gray-200 rounded p-1 w-full shadow-lg"
-              >
-                <div
-                  v-for="type in allowedCertificateType"
-                  :key="type"
-                  class="p-2 hover:bg-gray-200 rounded text-sm capitalize cursor-pointer"
-                  @click.stop="updateCertificateType(type)"
-                >
-                  {{ getCertificateTypeInText(type) }}
-                </div>
-              </div>
-            </div>
+            <AddNewCertificate :isAccountAvailable="isAccountAvailable" />
           </div>
         </div>
       </div>
@@ -180,26 +155,27 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from "vue";
-import InputForm from "./components/InputForm.vue";
-import AppButton from "@/components/buttons/AppButton.vue";
-import { useTransactionsStore } from "./store";
-import OutputForm from "./components/OutputForm.vue";
-import CopyButton from "@/components/buttons/CopyButton.vue";
-import { createWitnesses } from "@/lib/wallet";
+import { computed, defineComponent, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useAccountStore } from "@/stores/openStore";
+
+import { createWitnesses } from "@/lib/wallet";
 import type { Account } from "@/lib/account";
-import CertificateForm from "./components/certificateForm.vue";
-import ChevronDown from "@/assets/icons/chevronDown.vue";
-import { CertificateType } from "@stricahq/typhonjs/dist/types";
-import MintForm from "./components/MintForm.vue";
+
+import InputForm from "./components/inputs/inputForm.vue";
+import OutputForm from "./components/outputs/outputForm.vue";
+import MintForm from "./components/mints/mintForm.vue";
+import CertificateForm from "./components/certificates/certificateForm.vue";
+
+import { useAccountStore } from "@/stores/accountStore";
+import { useTransactionsStore } from "./store";
+import { useInputStore } from "./components/inputs/store";
+import { useOutputStore } from "./components/outputs/store";
+import { useMintStore } from "./components/mints/store";
+import { useCertificateStore } from "./components/certificates/store";
+
+import CopyButton from "@/components/buttons/CopyButton.vue";
+import AppButton from "@/components/buttons/AppButton.vue";
+import AddNewCertificate from "./components/certificates/addNewCertificate.vue";
 
 export default defineComponent({
   components: {
@@ -209,93 +185,98 @@ export default defineComponent({
     MintForm,
     CertificateForm,
     CopyButton,
-    ChevronDown,
+    AddNewCertificate,
   },
   setup() {
-    const trxStore = useTransactionsStore();
     const router = useRouter();
 
-    const certificateTrxForm = computed(() => {
-      return trxStore.certificateTrxItems;
-    });
-
-    const inputTrxForm = computed(() => {
-      return trxStore.inputTrxItems;
-    });
-
-    const outputTrxForm = computed(() => {
-      return trxStore.outputTrxItems;
-    });
-
-    const mintTrxForm = computed(() => trxStore.mintTrxItems);
-
-    function addInputTrx() {
-      trxStore.addInputTrx();
-    }
-
-    function addOutputTrx() {
-      trxStore.addOutputTrx();
-    }
-
-    function addCertificateTrx() {
-      trxStore.addCertificateTrx();
-    }
-
-    function addMintTrx() {
-      trxStore.addMintTrx();
-    }
-
-    const outputForm = ref();
-    const inputFrom = ref();
-    const certificateForm = ref([]);
-    const mintForm = ref([]);
-
-    function buildTransaction() {
-      //if any of the fields from input, output or certificate forms invalid, restrict the build transaction
-      let isInputFormsHaveValidData = true;
-      let isOutputFormsHaveValidData = true;
-      let isCertificateFormsHaveValidData = true;
-      let isMintFormsHaveValidData = true;
-
-      inputFrom.value.forEach((form: any) => {
-        if (!form.isFormValid() && isInputFormsHaveValidData)
-          isInputFormsHaveValidData = false;
-      });
-
-      outputForm.value.forEach((form: any) => {
-        if (!form.isFormValid() && isOutputFormsHaveValidData)
-          isOutputFormsHaveValidData = false;
-      });
-
-      certificateForm.value.forEach((form: any) => {
-        if (!form.isFormValid() && isCertificateFormsHaveValidData)
-          isCertificateFormsHaveValidData = false;
-      });
-
-      mintForm.value.forEach((form: any) => {
-        if (!form.isFormValid() && isMintFormsHaveValidData)
-          isMintFormsHaveValidData = form.isFormValid();
-      });
-
-      if (
-        isInputFormsHaveValidData &&
-        isOutputFormsHaveValidData &&
-        isCertificateFormsHaveValidData &&
-        isMintFormsHaveValidData
-      ) {
-        trxStore.buildTransaction();
-      }
-    }
-
-    const fee = computed(() => trxStore.fee);
-
+    const trxStore = useTransactionsStore();
+    const inputStore = useInputStore();
+    const outputStore = useOutputStore();
+    const mintStore = useMintStore();
+    const certificateStore = useCertificateStore();
     const accountStore = useAccountStore();
-
-    const transactionResponse = computed(() => trxStore.transactionResponse);
 
     const isAccountAvailable = computed(() =>
       accountStore.account?.xpub ? true : false,
     );
+
+    const certificates = computed(() => {
+      return certificateStore.certificates;
+    });
+
+    const inputs = computed(() => {
+      return inputStore.inputs;
+    });
+
+    const outputs = computed(() => {
+      return outputStore.outputs;
+    });
+
+    const mints = computed(() => mintStore.mints);
+
+    const addInput = () => {
+      inputStore.addInput();
+    };
+
+    const addOutput = () => {
+      outputStore.addOutput();
+    };
+
+    const addCertificate = () => {
+      certificateStore.addCertificate();
+    };
+
+    const addMint = () => {
+      mintStore.addMint();
+    };
+
+    const inputFrom = ref();
+    const outputForm = ref();
+    const certificateForm = ref([]);
+    const mintForm = ref([]);
+
+    const buildTransaction = () => {
+      //if any of the fields from input, output or certificate forms invalid, restrict the build transaction
+      let areInputFormsHaveValidData = true;
+      let areOutputFormsHaveValidData = true;
+      let areCertificateFormsHaveValidData = true;
+      let areMintFormsHaveValidData = true;
+
+      inputFrom.value.forEach((form: any) => {
+        if (!form.isFormValid() && areInputFormsHaveValidData)
+          areInputFormsHaveValidData = false;
+      });
+
+      outputForm.value.forEach((form: any) => {
+        if (!form.isFormValid() && areOutputFormsHaveValidData)
+          areOutputFormsHaveValidData = false;
+      });
+
+      certificateForm.value.forEach((form: any) => {
+        if (!form.isFormValid() && areCertificateFormsHaveValidData)
+          areCertificateFormsHaveValidData = false;
+      });
+
+      mintForm.value.forEach((form: any) => {
+        if (!form.isFormValid() && areMintFormsHaveValidData)
+          areMintFormsHaveValidData = form.isFormValid();
+      });
+
+      if (
+        areInputFormsHaveValidData &&
+        areOutputFormsHaveValidData &&
+        areCertificateFormsHaveValidData &&
+        areMintFormsHaveValidData
+      ) {
+        trxStore.buildTransaction();
+      }
+    };
+
+    const fee = computed(() => trxStore.fee);
+
+    const transactionResponse = computed(() => trxStore.transactionResponse);
+
     const signTransaction = () => {
       createCBOR();
       router.push("/transaction/signTransaction").then(() => {
@@ -303,7 +284,7 @@ export default defineComponent({
       });
     };
 
-    function createCBOR() {
+    const createCBOR = () => {
       const requiredSigners = trxStore.transaction.getRequiredWitnesses();
       const account = accountStore.account;
 
@@ -317,94 +298,38 @@ export default defineComponent({
 
       trxStore.signedTransactionCBOR =
         trxStore.transaction.buildTransaction().payload;
-    }
-
-    const isCertificatesDropdownOpen = ref(false);
-    const certificatesDropdownRef = ref();
-
-    const selectedCertificateType = ref<CertificateType>(
-      CertificateType.STAKE_KEY_REGISTRATION,
-    );
-
-    const updateCertificateType = (type: CertificateType) => {
-      trxStore.addCertificateTrx(type);
-      closeCertificatesDropdown();
     };
 
-    const openCertificatesDropdown = () => {
-      isCertificatesDropdownOpen.value = true;
-    };
-
-    const closeCertificatesDropdown = () => {
-      isCertificatesDropdownOpen.value = false;
-    };
-
-    function onClickOutside(event: MouseEvent) {
-      if (
-        isCertificatesDropdownOpen.value &&
-        certificatesDropdownRef.value &&
-        !certificatesDropdownRef.value.contains(event.target as Node)
-      ) {
-        closeCertificatesDropdown();
-      }
-    }
-
-    function getCertificateTypeInText(type: CertificateType) {
-      switch (type) {
-        case CertificateType.STAKE_KEY_REGISTRATION:
-          return "Stake Key Registration";
-        case CertificateType.STAKE_DELEGATION:
-          return "Stake Pool Delegation";
-        default:
-          return type;
-      }
-    }
-
-    function viewCBOR() {
+    const viewCBOR = () => {
       createCBOR();
       router.push("/cbor/cborView").then(() => {
         window.scrollTo({ top: 0, behavior: "instant" });
       });
-    }
-
-    onMounted(() => {
-      document.addEventListener("click", onClickOutside);
-    });
-
-    onBeforeUnmount(() => {
-      document.removeEventListener("click", onClickOutside);
-    });
+    };
 
     return {
-      inputTrxForm,
-      addInputTrx,
-      outputTrxForm,
-      addOutputTrx,
+      inputFrom,
+      inputs,
+      addInput,
+
+      outputs,
+      addOutput,
+      outputForm,
+
+      mintForm,
+      mints,
+      addMint,
+
+      certificates,
+      addCertificate,
+      certificateForm,
+
       fee,
       buildTransaction,
       transactionResponse,
-      outputForm,
-      inputFrom,
       signTransaction,
       isAccountAvailable,
 
-      mintForm,
-      mintTrxForm,
-      addMintTrx,
-
-      //certificate
-      certificateTrxForm,
-      addCertificateTrx,
-      certificateForm,
-      CertificateType,
-      isCertificatesDropdownOpen,
-      selectedCertificateType,
-      certificatesDropdownRef,
-      updateCertificateType,
-      openCertificatesDropdown,
-      closeCertificatesDropdown,
-      getCertificateTypeInText,
-      allowedCertificateType: trxStore.allowedCertificateType,
       viewCBOR,
     };
   },
