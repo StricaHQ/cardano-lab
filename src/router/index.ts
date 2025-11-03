@@ -1,8 +1,8 @@
 import DashboardLayout from "@/layouts/dashboard/DashboardLayout.vue";
-import CreateAccount from "@/pages/account/createAccount.vue";
-import BuildTransaction from "@/pages/Transaction/BuildTransaction.vue";
-import SignTransaction from "@/pages/Transaction/SignTransaction.vue";
-import CborView from "@/pages/cbor/cborView.vue";
+import CreateAccount from "@/pages/account/createAccount/createAccount.vue";
+import BuildTransaction from "@/pages/Transaction/buildTransaction/buildTransaction.vue";
+import SignTransaction from "@/pages/Transaction/signTransaction/signTransaction.vue";
+import CborView from "@/pages/cbor/cbroView/cborView.vue";
 
 import { createRouter, createWebHistory } from "vue-router";
 

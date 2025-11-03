@@ -1,5 +1,9 @@
 <template>
-  <div v-if="openDialog" class="fixed top-0 right-0 left-0 bottom-0 z-50">
+  <div
+    v-if="openDialog"
+    id="dialogContainer"
+    class="fixed top-0 right-0 left-0 bottom-0 z-50"
+  >
     <div
       class="relative flex items-center justify-center h-screen bg-cover bg-center bg-no-repeat bg-fixed"
     >
@@ -8,6 +12,7 @@
         @click="closeDialog()"
       ></div>
       <div
+        id="dialogBox"
         class="relative z-10 p-4 cardBackgroundColor1 rounded-xl w-full overflow-scroll no-scrollbar max-h-max"
         :class="dialogWidth"
       >
