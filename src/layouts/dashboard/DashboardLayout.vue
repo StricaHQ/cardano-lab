@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import AppHeader from "./components/AppHeader.vue";
-import AppSubHeader from "./components/AppSubHeader.vue";
+import AppHeader from "./components/appHeader/appHeader.vue";
+import AppSubHeader from "./components/appSubHeader/appSubHeader.vue";
 import AppFooter from "./components/AppFooter.vue";
 </script>
