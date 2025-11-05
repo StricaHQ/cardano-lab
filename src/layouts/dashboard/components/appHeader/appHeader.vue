@@ -4,7 +4,7 @@
       <div
         class="text-xl font-semibold col-span-1 flex items-center gap-x-2 w-40"
       >
-        <img class="w-10" src="../../../assets/image/logo.svg" alt="" />
+        <img class="w-10" src="/src/assets/image/logo.svg" alt="" />
         <span class="text-lg">Cardano Lab</span>
       </div>
       <div class="hidden md:block col-span-3">
